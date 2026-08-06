@@ -3,12 +3,11 @@ import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, LineChart, Line
 } from 'recharts';
-import { Sparkles, TrendingUp, Cpu, Award } from 'lucide-react';
 
 const INDUSTRY_DATA = [
-  { name: 'Lập Trình (Code)', value: 144, color: '#f43f5e' },
-  { name: 'Phân Tích Dữ Liệu (Data)', value: 79, color: '#10b981' },
-  { name: 'Business Analysis (BA)', value: 25, color: '#3b82f6' },
+  { name: 'Lập Trình (Code)', value: 144, color: '#4f46e5' },
+  { name: 'Data Analysis', value: 79, color: '#10b981' },
+  { name: 'Business Analysis', value: 25, color: '#f59e0b' },
 ];
 
 const TOP_SKILLS_DATA = [
@@ -18,10 +17,10 @@ const TOP_SKILLS_DATA = [
   { skill: 'Node.js', count: 68 },
   { skill: 'PowerBI', count: 52 },
   { skill: 'TypeScript', count: 48 },
-  { skill: 'Excel Advanced', count: 42 },
+  { skill: 'Excel Adv', count: 42 },
   { skill: 'Docker', count: 35 },
-  { skill: 'BPMN / BA', count: 28 },
-  { skill: 'GCP / AWS', count: 24 },
+  { skill: 'BPMN/BA', count: 28 },
+  { skill: 'GCP/AWS', count: 24 },
 ];
 
 const WEEKLY_TREND_DATA = [
@@ -34,132 +33,112 @@ const WEEKLY_TREND_DATA = [
 ];
 
 const MINDX_FIT_DISTRIBUTION = [
-  { category: 'Fit Cao (High 90%+)', count: 168, fill: '#10b981' },
-  { category: 'Fit Trung Bình (70%-89%)', count: 62, fill: '#f59e0b' },
-  { category: 'Fit Cơ Bản (<70%)', count: 18, fill: '#f43f5e' },
+  { category: 'Fit Cao (High 90%+)', count: 168, total: 248, fill: '#10b981' },
+  { category: 'Fit Trung Bình (70-89%)', count: 62, total: 248, fill: '#f59e0b' },
+  { category: 'Cơ Bản (<70%)', count: 18, total: 248, fill: '#f43f5e' },
 ];
+
+const TOOLTIP_STYLE = {
+  backgroundColor: '#fff',
+  borderColor: '#e2e8f0',
+  borderRadius: '12px',
+  color: '#0f172a',
+  fontSize: '12px',
+  boxShadow: '0 4px 16px 0 rgba(0,0,0,0.08)'
+};
+
+function ChartCard({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="card p-5">
+      <h3 className="text-sm font-bold text-slate-800 mb-4">{title}</h3>
+      {children}
+    </div>
+  );
+}
 
 export const AnalyticsCharts: React.FC = () => {
   return (
-    <div className="space-y-6">
-      
-      {/* Row 1: Pie & Top Skills */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        
-        {/* Industry Distribution Doughnut */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center space-x-2 mb-4">
-            <Cpu className="w-5 h-5 text-rose-500" />
-            <h3 className="font-bold text-white text-base">Phân Bổ Thị Trường Job Theo Ngành</h3>
-          </div>
-          <div className="h-64 w-full">
+    <div className="space-y-5">
+
+      {/* Row 1 */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+
+        <ChartCard title="Phân bổ Job theo Ngành (%)">
+          <div className="h-60">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie
-                  data={INDUSTRY_DATA}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={90}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {INDUSTRY_DATA.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
+                <Pie data={INDUSTRY_DATA} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={4} dataKey="value">
+                  {INDUSTRY_DATA.map((entry, i) => <Cell key={i} fill={entry.color} />)}
                 </Pie>
-                <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }}
-                />
-                <Legend formatter={(value) => <span className="text-xs text-slate-300">{value}</span>} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Legend formatter={(value) => <span className="text-xs text-slate-600">{value}</span>} />
               </PieChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </ChartCard>
 
-        {/* Top 10 Skills Bar Chart */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center space-x-2 mb-4">
-            <Sparkles className="w-5 h-5 text-amber-400" />
-            <h3 className="font-bold text-white text-base">Top 10 Kỹ Năng / Công Nghệ Được Tuyển Nhiều Nhất</h3>
-          </div>
-          <div className="h-64 w-full">
+        <ChartCard title="Top 10 Kỹ năng được tuyển nhiều nhất">
+          <div className="h-60">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={TOP_SKILLS_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="skill" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+              <BarChart data={TOP_SKILLS_DATA} margin={{ top: 4, right: 8, left: -28, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="skill" tick={{ fill: '#94a3b8', fontSize: 9 }} />
                 <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} />
-                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }} />
-                <Bar dataKey="count" fill="#f43f5e" radius={[6, 6, 0, 0]} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} />
+                <Bar dataKey="count" fill="#4f46e5" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </ChartCard>
 
       </div>
 
-      {/* Row 2: Trend Line Chart & MindX Fit Score */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        {/* Trend Line Chart */}
-        <div className="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl">
-          <div className="flex items-center space-x-2 mb-4">
-            <TrendingUp className="w-5 h-5 text-emerald-400" />
-            <h3 className="font-bold text-white text-base">Xu Hướng Tuyển Dụng Intern / Fresher Theo Tuần</h3>
-          </div>
-          <div className="h-64 w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={WEEKLY_TREND_DATA} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                <XAxis dataKey="week" tick={{ fill: '#94a3b8', fontSize: 10 }} />
-                <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} />
-                <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', color: '#fff' }} />
-                <Legend formatter={(value) => <span className="text-xs text-slate-300">{value}</span>} />
-                <Line type="monotone" dataKey="Code" stroke="#f43f5e" strokeWidth={3} dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="Data" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} />
-                <Line type="monotone" dataKey="BA" stroke="#3b82f6" strokeWidth={3} dot={{ r: 4 }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+      {/* Row 2 */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        <div className="lg:col-span-2">
+          <ChartCard title="Xu hướng tuyển dụng Intern / Fresher theo tuần">
+            <div className="h-60">
+              <ResponsiveContainer width="100%" height="100%">
+                <LineChart data={WEEKLY_TREND_DATA} margin={{ top: 4, right: 8, left: -28, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="week" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                  <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                  <Tooltip contentStyle={TOOLTIP_STYLE} />
+                  <Legend formatter={(value) => <span className="text-xs text-slate-600">{value}</span>} />
+                  <Line type="monotone" dataKey="Code" stroke="#4f46e5" strokeWidth={2.5} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="Data" stroke="#10b981" strokeWidth={2.5} dot={{ r: 3 }} />
+                  <Line type="monotone" dataKey="BA" stroke="#f59e0b" strokeWidth={2.5} dot={{ r: 3 }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+          </ChartCard>
         </div>
 
-        {/* MindX Fit Score Distribution */}
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
-          <div>
-            <div className="flex items-center space-x-2 mb-2">
-              <Award className="w-5 h-5 text-amber-400" />
-              <h3 className="font-bold text-white text-base">Phân Bổ Điểm MindX Fit Score</h3>
-            </div>
-            <p className="text-xs text-slate-400 mb-4">Mức độ tương thích giữa JD thị trường và Giáo trình đào tạo tại MindX</p>
-          </div>
-
-          <div className="space-y-4">
+        {/* Fit score distribution */}
+        <ChartCard title="MindX Fit Score – Phân bổ">
+          <div className="space-y-4 mt-2">
             {MINDX_FIT_DISTRIBUTION.map(item => (
               <div key={item.category} className="space-y-1">
-                <div className="flex justify-between text-xs font-semibold">
-                  <span className="text-slate-300">{item.category}</span>
-                  <span className="text-white font-bold">{item.count} jobs</span>
+                <div className="flex justify-between text-xs">
+                  <span className="font-medium text-slate-700">{item.category}</span>
+                  <span className="font-bold text-slate-800">{item.count}</span>
                 </div>
-                <div className="w-full h-2.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                <div className="w-full h-2 bg-slate-100 rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full transition-all duration-500"
-                    style={{
-                      width: `${(item.count / 248) * 100}%`,
-                      backgroundColor: item.fill
-                    }}
+                    style={{ width: `${(item.count / item.total) * 100}%`, backgroundColor: item.fill }}
                   />
                 </div>
               </div>
             ))}
           </div>
-
-          <div className="mt-4 p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-300">
-            💡 <strong>Nhận xét:</strong> Hơn 67% số job cào về hoàn toàn trùng khớp với bộ kỹ năng đầu ra của học viên MindX!
+          <div className="mt-5 p-3 rounded-xl bg-emerald-50 border border-emerald-100 text-xs text-emerald-800 leading-relaxed">
+            <strong>Nhận xét:</strong> Hơn 67% job cào về hoàn toàn khớp với kỹ năng đầu ra của học viên MindX!
           </div>
-        </div>
+        </ChartCard>
 
       </div>
-
     </div>
   );
 };

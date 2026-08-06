@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, ExternalLink, Building2, MapPin, DollarSign, Calendar, Sparkles, CheckCircle2, UserCheck, Save, Edit3, Trash2 } from 'lucide-react';
+import { X, ExternalLink, Save, UserCheck, Trash2, CheckCircle } from 'lucide-react';
 import { JobItem, JobStatusType } from '../../types/job';
 
 interface JobDetailModalProps {
@@ -10,6 +10,8 @@ interface JobDetailModalProps {
   onMatchStudent: (job: JobItem) => void;
   onDeleteJob: (jobId: string) => void;
 }
+
+const FIELD_LABEL = 'block text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5';
 
 export const JobDetailModal: React.FC<JobDetailModalProps> = ({
   job,
@@ -22,216 +24,179 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({
   if (!job) return null;
 
   const [notes, setNotes] = useState(job.ssNotes || '');
-  const [isSaved, setIsSaved] = useState(false);
+  const [saved, setSaved] = useState(false);
 
-  const handleSaveNotes = () => {
+  const handleSave = () => {
     onUpdateSsNotes(job.id, notes);
-    setIsSaved(true);
-    setTimeout(() => setIsSaved(false), 2000);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2000);
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl space-y-6 p-6 text-slate-200">
-        
-        {/* Top Header */}
-        <div className="flex items-start justify-between border-b border-slate-800 pb-4">
-          <div className="flex items-center space-x-4">
-            <div className="w-14 h-14 rounded-2xl bg-slate-800 border border-slate-700 overflow-hidden flex items-center justify-center shrink-0">
-              {job.companyLogo ? (
-                <img src={job.companyLogo} alt={job.companyName} className="w-full h-full object-cover" />
-              ) : (
-                <Building2 className="w-7 h-7 text-slate-400" />
-              )}
-            </div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm overflow-y-auto">
+      <div className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-xl space-y-0">
+
+        {/* Header */}
+        <div className="sticky top-0 bg-white z-10 border-b border-slate-200 px-6 py-4 flex items-start justify-between gap-4 rounded-t-2xl">
+          <div className="flex items-center gap-3 min-w-0">
             <div>
-              <div className="flex items-center space-x-2">
-                <span className="px-2.5 py-0.5 text-xs font-semibold bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-md">
-                  {job.industry} • {job.level}
-                </span>
-                <span className="px-2.5 py-0.5 text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-md">
-                  {job.employmentType}
-                </span>
+              <div className="flex items-center gap-2 flex-wrap mb-0.5">
+                <span className="badge-blue">{job.industry}</span>
+                <span className="badge-slate">{job.level}</span>
+                <span className="badge-slate">{job.employmentType}</span>
               </div>
-              <h2 className="text-xl font-bold text-white mt-1">{job.title}</h2>
-              <div className="flex items-center space-x-3 text-xs text-slate-400 mt-0.5">
-                <span className="font-semibold text-slate-300">{job.companyName}</span>
-                <span>•</span>
-                <a href={job.website} target="_blank" rel="noreferrer" className="text-sky-400 hover:underline flex items-center">
-                  <span>Website</span>
-                  <ExternalLink className="w-3 h-3 ml-1" />
+              <h2 className="text-base font-bold text-slate-900 leading-tight">{job.title}</h2>
+              <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
+                <span className="font-semibold text-slate-700">{job.companyName}</span>
+                <span>·</span>
+                <a href={job.website} target="_blank" rel="noreferrer" className="text-indigo-600 hover:underline flex items-center gap-0.5">
+                  Website <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
             </div>
           </div>
-
-          <button
-            onClick={onClose}
-            className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition-colors"
-          >
+          <button type="button" onClick={onClose} className="btn-ghost p-2 text-slate-400 hover:text-slate-700 shrink-0">
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* 18 Data Fields Highlight Grid */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-950 p-4 rounded-xl border border-slate-800 text-xs">
-          <div>
-            <span className="text-slate-500 block uppercase font-semibold text-[10px]">Mức Lương / Trợ Cấp</span>
-            <span className="text-amber-400 font-bold text-sm">{job.salary}</span>
-          </div>
+        <div className="p-6 space-y-6">
 
-          <div>
-            <span className="text-slate-500 block uppercase font-semibold text-[10px]">Địa Điểm</span>
-            <span className="text-slate-200 font-semibold">{job.location}</span>
-          </div>
-
-          <div>
-            <span className="text-slate-500 block uppercase font-semibold text-[10px]">Hạn Ứng Tuyển</span>
-            <span className="text-slate-200 font-semibold">{job.deadline}</span>
-          </div>
-
-          <div>
-            <span className="text-slate-500 block uppercase font-semibold text-[10px]">MindX Fit Score</span>
-            <span className={`font-bold ${
-              job.mindxFitScore === 'High' ? 'text-emerald-400' : 'text-amber-400'
-            }`}>
-              {job.mindxFitScore} (Khớp 92%)
-            </span>
-          </div>
-
-          <div>
-            <span className="text-slate-500 block uppercase font-semibold text-[10px]">Nguồn Cào Job</span>
-            <span className="text-sky-400 font-semibold">{job.source}</span>
-          </div>
-
-          <div>
-            <span className="text-slate-500 block uppercase font-semibold text-[10px]">Ngày Thu Thập</span>
-            <span className="text-slate-300">{job.scrapedAt}</span>
-          </div>
-
-          <div>
-            <span className="text-slate-500 block uppercase font-semibold text-[10px]">Trạng Thái Hiện Tại</span>
-            <select
-              value={job.status}
-              onChange={(e) => onUpdateStatus(job.id, e.target.value as JobStatusType)}
-              className="bg-slate-900 border border-slate-700 text-white rounded px-2 py-0.5 mt-0.5 text-xs font-semibold focus:outline-none focus:border-rose-500"
-            >
-              <option value="Còn tuyển">Còn tuyển</option>
-              <option value="Hết hạn">Hết hạn</option>
-              <option value="Chưa xác minh">Chưa xác minh</option>
-              <option value="Đã gửi học viên">Đã gửi học viên</option>
-            </select>
-          </div>
-
-          <div>
-            <span className="text-slate-500 block uppercase font-semibold text-[10px]">Link Gốc</span>
-            <a href={job.originalUrl} target="_blank" rel="noreferrer" className="text-sky-400 underline font-semibold flex items-center mt-1">
-              <span>Mở JD Gốc</span>
-              <ExternalLink className="w-3 h-3 ml-1" />
-            </a>
-          </div>
-        </div>
-
-        {/* Required Skills Badges */}
-        <div className="space-y-2">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-slate-400">Kỹ Năng / Công Nghệ Bắt Buộc</h4>
-          <div className="flex flex-wrap gap-2">
-            {job.skills.map(skill => (
-              <span key={skill} className="px-3 py-1 bg-slate-950 text-rose-300 font-semibold border border-slate-800 rounded-lg text-xs">
-                #{skill}
-              </span>
-            ))}
-          </div>
-        </div>
-
-        {/* Job Description & Requirements */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-rose-400">Mô Tả Công Việc (Job Description)</h4>
-            <p className="text-xs leading-relaxed text-slate-300 whitespace-pre-line">{job.description}</p>
-          </div>
-
-          <div className="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-emerald-400">Yêu Cầu Ứng Viên</h4>
-            <p className="text-xs leading-relaxed text-slate-300 whitespace-pre-line">{job.requirements}</p>
-          </div>
-        </div>
-
-        {/* Benefits */}
-        <div className="space-y-2 bg-slate-950/60 p-4 rounded-xl border border-slate-800">
-          <h4 className="text-xs font-bold uppercase tracking-wider text-amber-400">Quyền Lợi Đãi Ngộ</h4>
-          <p className="text-xs leading-relaxed text-slate-300">{job.benefits}</p>
-        </div>
-
-        {/* SS Team Internal Notes (Editable Area) */}
-        <div className="space-y-2 bg-rose-950/20 border border-rose-500/30 p-4 rounded-xl">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2 text-rose-400 font-semibold text-xs uppercase tracking-wider">
-              <Sparkles className="w-4 h-4" />
-              <span>Ghi Chú Nội Bộ Team Student Success (SS Notes)</span>
+          {/* Key metadata grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 bg-slate-50 rounded-xl border border-slate-200 text-sm">
+            <div>
+              <p className={FIELD_LABEL}>Mức lương</p>
+              <p className="font-bold text-amber-700">{job.salary}</p>
             </div>
-            {isSaved && (
-              <span className="text-xs text-emerald-400 font-semibold flex items-center">
-                <CheckCircle2 className="w-3.5 h-3.5 mr-1" />
-                Đã lưu ghi chú!
-              </span>
-            )}
+            <div>
+              <p className={FIELD_LABEL}>Địa điểm</p>
+              <p className="font-semibold text-slate-800">{job.location}</p>
+            </div>
+            <div>
+              <p className={FIELD_LABEL}>Hạn nộp</p>
+              <p className="font-semibold text-slate-800">{job.deadline}</p>
+            </div>
+            <div>
+              <p className={FIELD_LABEL}>Fit MindX</p>
+              <p className={`font-bold ${
+                job.mindxFitScore === 'High'   ? 'text-emerald-700' :
+                job.mindxFitScore === 'Medium' ? 'text-amber-700'   : 'text-rose-700'
+              }`}>{job.mindxFitScore} ≈ 92%</p>
+            </div>
+            <div>
+              <p className={FIELD_LABEL}>Nguồn</p>
+              <p className="text-indigo-700 font-semibold">{job.source}</p>
+            </div>
+            <div>
+              <p className={FIELD_LABEL}>Ngày cào</p>
+              <p className="text-slate-700">{job.scrapedAt}</p>
+            </div>
+            <div>
+              <p className={FIELD_LABEL}>Trạng thái</p>
+              <select
+                value={job.status}
+                onChange={e => onUpdateStatus(job.id, e.target.value as JobStatusType)}
+                className="input text-xs py-1"
+              >
+                <option value="Còn tuyển">Còn tuyển</option>
+                <option value="Hết hạn">Hết hạn</option>
+                <option value="Chưa xác minh">Chưa xác minh</option>
+                <option value="Đã gửi học viên">Đã gửi học viên</option>
+              </select>
+            </div>
+            <div>
+              <p className={FIELD_LABEL}>Link gốc</p>
+              <a href={job.originalUrl} target="_blank" rel="noreferrer"
+                className="text-indigo-600 hover:underline text-xs flex items-center gap-0.5 font-semibold mt-1">
+                Mở JD <ExternalLink className="w-3 h-3" />
+              </a>
+            </div>
           </div>
-          <textarea
-            rows={3}
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            placeholder="Ghi chú về HR, học viên đã apply, phỏng vấn, hoặc phản hồi từ doanh nghiệp..."
-            className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-rose-500"
-          />
-          <div className="flex justify-end">
+
+          {/* Skills */}
+          <div>
+            <p className={FIELD_LABEL}>Kỹ năng / Công nghệ yêu cầu</p>
+            <div className="flex flex-wrap gap-1.5 mt-1">
+              {job.skills.map(s => <span key={s} className="skill-pill pointer-events-none">{s}</span>)}
+            </div>
+          </div>
+
+          {/* JD + Requirements */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+              <p className={FIELD_LABEL + ' text-indigo-700'}>Mô tả công việc</p>
+              <p className="text-sm text-slate-700 whitespace-pre-line leading-relaxed mt-1">{job.description}</p>
+            </div>
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+              <p className={FIELD_LABEL + ' text-emerald-700'}>Yêu cầu ứng viên</p>
+              <p className="text-sm text-slate-700 whitespace-pre-line leading-relaxed mt-1">{job.requirements}</p>
+            </div>
+          </div>
+
+          {/* Benefits */}
+          <div className="bg-amber-50 rounded-xl p-4 border border-amber-100">
+            <p className={FIELD_LABEL + ' text-amber-700'}>Quyền lợi & Đãi ngộ</p>
+            <p className="text-sm text-slate-700 mt-1">{job.benefits}</p>
+          </div>
+
+          {/* SS Notes */}
+          <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100 space-y-3">
+            <div className="flex items-center justify-between">
+              <p className={FIELD_LABEL + ' text-indigo-700'}>Ghi chú nội bộ Team SS</p>
+              {saved && (
+                <span className="flex items-center gap-1 text-xs text-emerald-700 font-semibold">
+                  <CheckCircle className="w-3.5 h-3.5" />
+                  Đã lưu
+                </span>
+              )}
+            </div>
+            <textarea
+              rows={3}
+              value={notes}
+              onChange={e => setNotes(e.target.value)}
+              placeholder="Ghi chú về HR, học viên đã apply, kết quả phỏng vấn..."
+              className="input text-sm resize-none bg-white"
+            />
+            <div className="flex justify-end">
+              <button type="button" onClick={handleSave} className="btn-primary text-xs">
+                <Save className="w-3.5 h-3.5" />
+                Lưu ghi chú
+              </button>
+            </div>
+          </div>
+
+          {/* Actions row */}
+          <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
             <button
-              onClick={handleSaveNotes}
-              className="flex items-center space-x-1.5 px-4 py-1.5 text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white rounded-lg transition-colors"
+              type="button"
+              onClick={() => { onDeleteJob(job.id); onClose(); }}
+              className="btn-ghost text-rose-600 hover:bg-rose-50 text-sm"
             >
-              <Save className="w-3.5 h-3.5" />
-              <span>Lưu Ghi Chú SS</span>
+              <Trash2 className="w-4 h-4" />
+              Xóa job này
             </button>
+
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => { onClose(); onMatchStudent(job); }}
+                className="btn-secondary"
+              >
+                <UserCheck className="w-4 h-4" />
+                Gợi ý học viên phù hợp
+              </button>
+              <a
+                href={job.originalUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="btn-primary"
+              >
+                Mở link JD gốc
+                <ExternalLink className="w-4 h-4" />
+              </a>
+            </div>
           </div>
         </div>
-
-        {/* Bottom Actions */}
-        <div className="pt-4 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3">
-          <button
-            onClick={() => {
-              onDeleteJob(job.id);
-              onClose();
-            }}
-            className="flex items-center space-x-1.5 px-3 py-2 text-xs font-semibold text-rose-400 hover:bg-rose-500/10 border border-rose-500/30 rounded-xl transition-colors"
-          >
-            <Trash2 className="w-4 h-4" />
-            <span>Xóa Job Này</span>
-          </button>
-
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={() => {
-                onClose();
-                onMatchStudent(job);
-              }}
-              className="flex items-center space-x-2 px-4 py-2 text-xs font-semibold bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl transition-colors shadow-lg shadow-amber-500/20"
-            >
-              <UserCheck className="w-4 h-4" />
-              <span>Gợi Ý Học Viên Phù Hợp</span>
-            </button>
-
-            <a
-              href={job.originalUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center space-x-2 px-4 py-2 text-xs font-semibold bg-rose-600 hover:bg-rose-500 text-white rounded-xl transition-colors shadow-lg shadow-rose-900/30"
-            >
-              <span>Truy Cập Link JD Gốc</span>
-              <ExternalLink className="w-4 h-4" />
-            </a>
-          </div>
-        </div>
-
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Copy, GitMerge, Trash2, CheckCircle2, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { Trash2, GitMerge, ShieldCheck } from 'lucide-react';
 import { DedupPair, JobItem } from '../../types/job';
 
 interface DeduplicationToolProps {
@@ -13,33 +13,19 @@ export const DeduplicationTool: React.FC<DeduplicationToolProps> = ({
   onMergeJobs,
   onDeleteDuplicate
 }) => {
-
-  // Create sample duplicate pairs from current jobs
   const [pairs, setPairs] = useState<DedupPair[]>([
     {
       id: 'pair-1',
       jobA: jobs[0] || {} as JobItem,
-      jobB: {
-        ...jobs[0],
-        id: 'job-101-dup',
-        source: 'LinkedIn',
-        scrapedAt: '2026-08-06',
-        ssNotes: 'Crawl trùng từ LinkedIn đăng lại tin TopCV.'
-      } as JobItem,
-      similarityReason: 'Trùng khớp 100% Tên công ty (Cốc Cốc) & Vị trí tuyển dụng (Intern Node.js)',
+      jobB: { ...jobs[0], id: 'job-101-dup', source: 'LinkedIn', scrapedAt: '2026-08-06', ssNotes: 'Crawl trùng từ LinkedIn.' } as JobItem,
+      similarityReason: 'Trùng 100% Tên công ty (Cốc Cốc) & Vị trí (Intern Node.js)',
       confidence: 96
     },
     {
       id: 'pair-2',
       jobA: jobs[1] || {} as JobItem,
-      jobB: {
-        ...jobs[1],
-        id: 'job-102-dup',
-        source: 'VietnamWorks',
-        scrapedAt: '2026-08-06',
-        ssNotes: 'Crawl trùng từ VietnamWorks.'
-      } as JobItem,
-      similarityReason: 'Trùng khớp URL JD gốc & Yêu cầu ứng viên (HDBank Data Analyst)',
+      jobB: { ...jobs[1], id: 'job-102-dup', source: 'VietnamWorks', scrapedAt: '2026-08-06', ssNotes: 'Crawl trùng từ VietnamWorks.' } as JobItem,
+      similarityReason: 'Trùng URL JD gốc & Yêu cầu (HDBank Data Analyst)',
       confidence: 92
     }
   ]);
@@ -55,92 +41,67 @@ export const DeduplicationTool: React.FC<DeduplicationToolProps> = ({
   };
 
   return (
-    <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
-      
-      {/* Header */}
-      <div className="flex items-center justify-between border-b border-slate-800 pb-4">
-        <div className="flex items-center space-x-3">
-          <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            <Copy className="w-5 h-5" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-white">Công Cụ Phát Hiện & Loại Bỏ Job Trùng Lặp (Deduplication Tool)</h3>
-            <p className="text-xs text-slate-400">
-              Tự động quét và phát hiện các bài đăng trùng URL gốc hoặc trùng Tên Công Ty + Vị Trí Tuyển Dụng
-            </p>
-          </div>
-        </div>
+    <div className="card p-6 space-y-5">
 
-        <span className="px-3 py-1 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl text-xs font-bold flex items-center space-x-1">
-          <AlertTriangle className="w-3.5 h-3.5" />
-          <span>{pairs.length} cặp nghi trùng</span>
-        </span>
+      <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div>
+          <h2 className="text-base font-bold text-slate-900">Phát hiện & Loại bỏ Job Trùng lặp</h2>
+          <p className="text-xs text-slate-500 mt-0.5">Quét tự động theo URL gốc và Tên công ty + Vị trí tuyển dụng.</p>
+        </div>
+        {pairs.length > 0 && (
+          <span className="badge-amber">{pairs.length} cặp nghi trùng</span>
+        )}
       </div>
 
       {pairs.length === 0 ? (
-        <div className="p-8 text-center bg-slate-950 rounded-2xl border border-slate-800 text-slate-400">
-          <ShieldCheck className="w-12 h-12 text-emerald-400 mx-auto mb-2" />
-          <h4 className="text-sm font-bold text-white">Cơ sở dữ liệu hoàn toàn sạch sẽ!</h4>
-          <p className="text-xs mt-1">Không phát hiện bản ghi trùng lặp nào trong hệ thống.</p>
+        <div className="p-10 text-center space-y-2 bg-emerald-50 rounded-2xl border border-emerald-100">
+          <ShieldCheck className="w-10 h-10 text-emerald-600 mx-auto" />
+          <p className="font-bold text-slate-800">Database hoàn toàn sạch!</p>
+          <p className="text-xs text-slate-500">Không tìm thấy bản ghi trùng lặp nào.</p>
         </div>
       ) : (
         <div className="space-y-4">
           {pairs.map(pair => (
-            <div key={pair.id} className="p-5 bg-slate-950 border border-slate-800 rounded-2xl space-y-4">
-              
+            <div key={pair.id} className="border border-amber-200 bg-amber-50/50 rounded-2xl p-5 space-y-4">
+
               <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2 text-xs">
-                  <span className="font-bold text-amber-400">Lý do nghi trùng:</span>
-                  <span className="text-slate-300">{pair.similarityReason}</span>
-                </div>
-                <span className="px-2.5 py-0.5 text-xs font-black bg-rose-500/20 text-rose-300 border border-rose-500/30 rounded-md">
-                  Độ tin cậy: {pair.confidence}%
-                </span>
+                <p className="text-xs text-slate-700">
+                  <span className="font-bold text-amber-700">Nghi trùng:</span> {pair.similarityReason}
+                </p>
+                <span className="badge-rose font-bold">Tin cậy {pair.confidence}%</span>
               </div>
 
-              {/* Grid 2 Jobs Comparison */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                
-                {/* Job A */}
-                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2 text-xs">
-                  <div className="flex justify-between items-start">
-                    <span className="font-bold text-emerald-400">Bản ghi A (TopCV)</span>
-                    <span className="text-[10px] text-slate-500">{pair.jobA.scrapedAt}</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {[
+                  { label: 'Bản ghi A (TopCV)', job: pair.jobA, color: 'text-emerald-700' },
+                  { label: `Bản ghi B (${pair.jobB.source})`, job: pair.jobB, color: 'text-sky-700' }
+                ].map(({ label, job, color }) => (
+                  <div key={label} className="p-4 rounded-xl bg-white border border-slate-200 text-xs space-y-1">
+                    <p className={`font-bold ${color}`}>{label}</p>
+                    <p className="font-bold text-slate-800 text-sm">{job.title}</p>
+                    <p className="text-slate-500">{job.companyName} · {job.location}</p>
+                    <p className="font-semibold text-amber-700">{job.salary}</p>
+                    <p className="text-slate-400 text-[10px]">{job.scrapedAt}</p>
                   </div>
-                  <h5 className="font-bold text-white text-sm">{pair.jobA.title}</h5>
-                  <p className="text-slate-400">{pair.jobA.companyName} • {pair.jobA.location}</p>
-                  <p className="text-amber-400 font-semibold">{pair.jobA.salary}</p>
-                </div>
-
-                {/* Job B */}
-                <div className="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-2 text-xs">
-                  <div className="flex justify-between items-start">
-                    <span className="font-bold text-sky-400">Bản ghi B ({pair.jobB.source})</span>
-                    <span className="text-[10px] text-slate-500">{pair.jobB.scrapedAt}</span>
-                  </div>
-                  <h5 className="font-bold text-white text-sm">{pair.jobB.title}</h5>
-                  <p className="text-slate-400">{pair.jobB.companyName} • {pair.jobB.location}</p>
-                  <p className="text-amber-400 font-semibold">{pair.jobB.salary}</p>
-                </div>
-
+                ))}
               </div>
 
-              {/* Action Handlers */}
-              <div className="pt-2 flex flex-wrap items-center justify-end gap-3">
+              <div className="flex flex-wrap items-center justify-end gap-2 pt-1 border-t border-amber-100">
                 <button
+                  type="button"
                   onClick={() => handleDelete(pair.id, pair.jobB.id)}
-                  className="flex items-center space-x-1.5 px-3.5 py-1.5 text-xs font-semibold text-rose-400 hover:bg-rose-500/10 border border-rose-500/30 rounded-xl transition-colors"
+                  className="btn-ghost text-rose-600 hover:bg-rose-50 text-xs"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
-                  <span>Xóa Bản Ghi B (Xóa trùng)</span>
+                  Xóa Bản ghi B (Bản trùng)
                 </button>
-
                 <button
+                  type="button"
                   onClick={() => handleMerge(pair.id, pair.jobA)}
-                  className="flex items-center space-x-1.5 px-4 py-1.5 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl shadow-md transition-colors"
+                  className="btn-primary text-xs"
                 >
                   <GitMerge className="w-3.5 h-3.5" />
-                  <span>Gộp Dữ Liệu (Merge Job A + B)</span>
+                  Gộp dữ liệu A + B
                 </button>
               </div>
 

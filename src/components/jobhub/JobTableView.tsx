@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink, Eye, UserCheck, Trash2, Edit } from 'lucide-react';
+import { ExternalLink, UserCheck, Trash2, Eye } from 'lucide-react';
 import { JobItem } from '../../types/job';
 
 interface JobTableViewProps {
@@ -9,6 +9,19 @@ interface JobTableViewProps {
   onDeleteJob: (id: string) => void;
 }
 
+const FIT_CLASS: Record<string, string> = {
+  High:   'text-emerald-700 font-bold',
+  Medium: 'text-amber-700 font-bold',
+  Low:    'text-rose-700 font-bold',
+};
+
+const STATUS_CLASS: Record<string, string> = {
+  'Còn tuyển':       'badge-green',
+  'Đã gửi học viên': 'badge-blue',
+  'Chưa xác minh':  'badge-amber',
+  'Hết hạn':         'badge-rose',
+};
+
 export const JobTableView: React.FC<JobTableViewProps> = ({
   jobs,
   onSelectJob,
@@ -16,77 +29,65 @@ export const JobTableView: React.FC<JobTableViewProps> = ({
   onDeleteJob
 }) => {
   return (
-    <div className="w-full overflow-x-auto bg-slate-900 border border-slate-800 rounded-2xl shadow-xl">
-      <table className="w-full text-left border-collapse text-xs">
+    <div className="w-full overflow-x-auto card">
+      <table className="w-full text-left text-sm border-collapse">
         <thead>
-          <tr className="bg-slate-950/80 border-b border-slate-800 text-slate-400 uppercase tracking-wider font-semibold">
-            <th className="p-3.5">Công ty & Vị trí</th>
-            <th className="p-3.5">Ngành & Level</th>
-            <th className="p-3.5">Địa điểm</th>
-            <th className="p-3.5">Mức Lương</th>
-            <th className="p-3.5">Nguồn</th>
-            <th className="p-3.5">Trạng thái</th>
-            <th className="p-3.5">Fit Score</th>
-            <th className="p-3.5 text-right">Thao tác</th>
+          <tr className="bg-slate-50 border-b border-slate-200">
+            {['Vị trí & Công ty', 'Ngành · Level', 'Địa điểm', 'Lương', 'Nguồn', 'Trạng thái', 'Fit', ''].map(h => (
+              <th key={h} className="px-4 py-3 text-xs font-bold text-slate-500 uppercase tracking-wider whitespace-nowrap">
+                {h}
+              </th>
+            ))}
           </tr>
         </thead>
-        <tbody className="divide-y divide-slate-800/60 text-slate-300">
+        <tbody className="divide-y divide-slate-100">
           {jobs.map(job => (
-            <tr key={job.id} className="hover:bg-slate-800/40 transition-colors">
-              <td className="p-3.5">
-                <div className="font-bold text-white hover:text-rose-400 cursor-pointer" onClick={() => onSelectJob(job)}>
+            <tr key={job.id} className="hover:bg-slate-50 transition-colors">
+              <td className="px-4 py-3">
+                <button
+                  type="button"
+                  onClick={() => onSelectJob(job)}
+                  className="text-left font-semibold text-slate-800 hover:text-indigo-700 transition-colors text-sm"
+                >
                   {job.title}
-                </div>
-                <div className="text-slate-400 text-[11px]">{job.companyName}</div>
+                </button>
+                <div className="text-xs text-slate-400 mt-0.5">{job.companyName}</div>
               </td>
-              <td className="p-3.5">
-                <span className="px-2 py-0.5 rounded bg-slate-950 text-rose-400 font-medium border border-slate-800">
-                  {job.industry}
-                </span>
-                <div className="text-[11px] text-slate-400 mt-0.5">{job.level}</div>
+              <td className="px-4 py-3 whitespace-nowrap">
+                <span className="text-xs font-medium text-indigo-700">{job.industry}</span>
+                <div className="text-xs text-slate-400">{job.level}</div>
               </td>
-              <td className="p-3.5">{job.location}</td>
-              <td className="p-3.5 text-amber-400 font-medium">{job.salary}</td>
-              <td className="p-3.5">
-                <a href={job.originalUrl} target="_blank" rel="noreferrer" className="flex items-center text-sky-400 hover:underline">
-                  <span>{job.source}</span>
-                  <ExternalLink className="w-3 h-3 ml-1" />
+              <td className="px-4 py-3 text-xs text-slate-600 whitespace-nowrap">{job.location}</td>
+              <td className="px-4 py-3 text-xs font-semibold text-slate-700 whitespace-nowrap">{job.salary}</td>
+              <td className="px-4 py-3">
+                <a
+                  href={job.originalUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="flex items-center gap-0.5 text-xs text-indigo-600 hover:underline"
+                >
+                  {job.source}
+                  <ExternalLink className="w-2.5 h-2.5" />
                 </a>
               </td>
-              <td className="p-3.5">
-                <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  {job.status}
-                </span>
+              <td className="px-4 py-3 whitespace-nowrap">
+                <span className={STATUS_CLASS[job.status] || 'badge-slate'}>{job.status}</span>
               </td>
-              <td className="p-3.5">
-                <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                  job.mindxFitScore === 'High' ? 'text-emerald-400 bg-emerald-500/20' : 'text-amber-400 bg-amber-500/20'
-                }`}>
-                  {job.mindxFitScore}
-                </span>
+              <td className={`px-4 py-3 text-xs whitespace-nowrap ${FIT_CLASS[job.mindxFitScore] || ''}`}>
+                {job.mindxFitScore}
               </td>
-              <td className="p-3.5 text-right space-x-1">
-                <button
-                  onClick={() => onMatchStudent(job)}
-                  title="Gợi ý học viên"
-                  className="p-1.5 text-slate-400 hover:text-amber-400 hover:bg-slate-800 rounded-lg"
-                >
-                  <UserCheck className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => onSelectJob(job)}
-                  title="Xem chi tiết"
-                  className="p-1.5 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg"
-                >
-                  <Eye className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => onDeleteJob(job.id)}
-                  title="Xóa job"
-                  className="p-1.5 text-slate-400 hover:text-rose-400 hover:bg-slate-800 rounded-lg"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+              <td className="px-4 py-3">
+                <div className="flex items-center gap-1">
+                  <button type="button" onClick={() => onMatchStudent(job)} title="Gợi ý học viên" className="btn-ghost p-1 text-slate-400 hover:text-indigo-600">
+                    <UserCheck className="w-4 h-4" />
+                  </button>
+                  <button type="button" onClick={() => onSelectJob(job)} title="Xem chi tiết" className="btn-ghost p-1 text-slate-400 hover:text-slate-800">
+                    <Eye className="w-4 h-4" />
+                  </button>
+                  <button type="button" onClick={() => onDeleteJob(job.id)} title="Xóa" className="btn-ghost p-1 text-slate-400 hover:text-rose-600">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </td>
             </tr>
           ))}

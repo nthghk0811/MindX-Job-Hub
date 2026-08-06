@@ -1,89 +1,66 @@
 import React from 'react';
-import { Database, TrendingUp, Code2, PieChart, MapPin, Zap } from 'lucide-react';
+import { Database, TrendingUp, PieChart, MapPin } from 'lucide-react';
 import { TOTAL_DB_METRICS } from '../../data/mockJobs';
+
+const STATS = [
+  {
+    label: 'Tổng job trong DB',
+    value: `${TOTAL_DB_METRICS.totalJobsInDb}`,
+    sub: 'đã kiểm duyệt & lưu trữ',
+    change: '+18.4%',
+    positive: true,
+    color: 'text-indigo-600',
+    bg: 'bg-indigo-50',
+    border: 'border-indigo-100',
+  },
+  {
+    label: 'Job mới trong tuần',
+    value: `${TOTAL_DB_METRICS.newJobsThisWeek}`,
+    sub: 'cào tự động từ 6 nguồn',
+    change: '+12%',
+    positive: true,
+    color: 'text-amber-600',
+    bg: 'bg-amber-50',
+    border: 'border-amber-100',
+  },
+  {
+    label: 'Tỷ lệ Code vs Data',
+    value: `${TOTAL_DB_METRICS.codeRatio}% · ${TOTAL_DB_METRICS.dataRatio}%`,
+    sub: `Code / Data Analysis / BA ${TOTAL_DB_METRICS.baRatio}%`,
+    change: 'Cân bằng',
+    positive: true,
+    color: 'text-violet-600',
+    bg: 'bg-violet-50',
+    border: 'border-violet-100',
+  },
+  {
+    label: 'Hà Nội vs TP.HCM',
+    value: `${TOTAL_DB_METRICS.hanoiJobs} · ${TOTAL_DB_METRICS.hcmJobs}`,
+    sub: 'Phủ sóng 2 thị trường lớn',
+    change: 'Đều',
+    positive: true,
+    color: 'text-emerald-600',
+    bg: 'bg-emerald-50',
+    border: 'border-emerald-100',
+  },
+];
 
 export const StatCards: React.FC = () => {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      
-      {/* Card 1: Total Jobs */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group">
-        <div className="absolute -right-3 -bottom-3 opacity-10 group-hover:opacity-20 transition-opacity">
-          <Database className="w-24 h-24 text-rose-500" />
-        </div>
-        <div className="flex items-center space-x-3 text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
-          <div className="p-2 rounded-xl bg-rose-500/10 text-rose-400 border border-rose-500/20">
-            <Database className="w-4 h-4" />
+      {STATS.map(s => (
+        <div key={s.label} className={`card p-5 border ${s.border}`}>
+          <p className="text-xs font-semibold text-slate-500 mb-2">{s.label}</p>
+          <p className={`text-2xl font-extrabold ${s.color} leading-none mb-1`}>{s.value}</p>
+          <p className="text-xs text-slate-400">{s.sub}</p>
+          <div className="mt-3 pt-3 border-t border-slate-100 flex items-center justify-between">
+            <span className={`text-xs font-semibold ${s.positive ? 'text-emerald-600' : 'text-rose-600'}`}>
+              {s.change}
+            </span>
+            <TrendingUp className={`w-4 h-4 ${s.positive ? 'text-emerald-500' : 'text-rose-500'}`} />
           </div>
-          <span>Tổng Job Trong DB</span>
         </div>
-        <div className="flex items-baseline space-x-2">
-          <span className="text-3xl font-black text-white">{TOTAL_DB_METRICS.totalJobsInDb}</span>
-          <span className="text-xs font-medium text-emerald-400 flex items-center">
-            <TrendingUp className="w-3 h-3 mr-0.5" />
-            +18.4%
-          </span>
-        </div>
-        <p className="text-[11px] text-slate-400 mt-1">Đã kiểm duyệt & lưu trữ hệ thống</p>
-      </div>
-
-      {/* Card 2: New Jobs this week */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group">
-        <div className="absolute -right-3 -bottom-3 opacity-10 group-hover:opacity-20 transition-opacity">
-          <Zap className="w-24 h-24 text-amber-500" />
-        </div>
-        <div className="flex items-center space-x-3 text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
-          <div className="p-2 rounded-xl bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            <Zap className="w-4 h-4" />
-          </div>
-          <span>Job Mới Trong Tuần</span>
-        </div>
-        <div className="flex items-baseline space-x-2">
-          <span className="text-3xl font-black text-amber-400">{TOTAL_DB_METRICS.newJobsThisWeek}</span>
-          <span className="text-xs font-medium text-amber-300">mới cào tự động</span>
-        </div>
-        <p className="text-[11px] text-slate-400 mt-1">Crawl từ TopCV, ITviec, LinkedIn...</p>
-      </div>
-
-      {/* Card 3: Code vs Data Ratio */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group">
-        <div className="absolute -right-3 -bottom-3 opacity-10 group-hover:opacity-20 transition-opacity">
-          <Code2 className="w-24 h-24 text-sky-500" />
-        </div>
-        <div className="flex items-center space-x-3 text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
-          <div className="p-2 rounded-xl bg-sky-500/10 text-sky-400 border border-sky-500/20">
-            <PieChart className="w-4 h-4" />
-          </div>
-          <span>Tỷ Lệ Code vs Data</span>
-        </div>
-        <div className="flex items-baseline space-x-2">
-          <span className="text-2xl font-black text-sky-400">{TOTAL_DB_METRICS.codeRatio}%</span>
-          <span className="text-xs text-slate-400">vs</span>
-          <span className="text-2xl font-black text-emerald-400">{TOTAL_DB_METRICS.dataRatio}%</span>
-        </div>
-        <p className="text-[11px] text-slate-400 mt-1">Code ({TOTAL_DB_METRICS.codeRatio}%) | Data ({TOTAL_DB_METRICS.dataRatio}%) | BA (10%)</p>
-      </div>
-
-      {/* Card 4: Location Split */}
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 shadow-xl relative overflow-hidden group">
-        <div className="absolute -right-3 -bottom-3 opacity-10 group-hover:opacity-20 transition-opacity">
-          <MapPin className="w-24 h-24 text-emerald-500" />
-        </div>
-        <div className="flex items-center space-x-3 text-slate-400 text-xs font-semibold uppercase tracking-wider mb-2">
-          <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <MapPin className="w-4 h-4" />
-          </div>
-          <span>Hà Nội vs TP.HCM</span>
-        </div>
-        <div className="flex items-baseline space-x-2">
-          <span className="text-2xl font-black text-rose-400">{TOTAL_DB_METRICS.hanoiJobs}</span>
-          <span className="text-xs text-slate-400">HN /</span>
-          <span className="text-2xl font-black text-emerald-400">{TOTAL_DB_METRICS.hcmJobs}</span>
-          <span className="text-xs text-slate-400">HCM</span>
-        </div>
-        <p className="text-[11px] text-slate-400 mt-1">Phủ sóng 2 thị trường công nghệ lớn nhất</p>
-      </div>
-
+      ))}
     </div>
   );
 };
