@@ -15,6 +15,8 @@ import { DeduplicationTool } from './components/tools/DeduplicationTool';
 import { NewsletterGenerator } from './components/smart/NewsletterGenerator';
 import { SystemDocsModal } from './components/docs/SystemDocsModal';
 
+import { HeroBanner } from './components/layout/HeroBanner';
+
 import { INITIAL_MOCK_JOBS, TOTAL_DB_METRICS } from './data/mockJobs';
 import { INITIAL_MOCK_STUDENTS } from './data/mockStudents';
 import { JobItem, FilterState, JobStatusType } from './types/job';
@@ -175,7 +177,16 @@ export default function App() {
         
         {/* TAB 1: JOB HUB (Focus Screen) */}
         {activeTab === 'jobhub' && (
-          <div className="flex flex-col lg:flex-row gap-6">
+          <div className="space-y-6">
+            
+            {/* Hero Value Proposition Banner */}
+            <HeroBanner
+              totalJobs={jobs.length}
+              onOpenDocs={() => setIsDocsModalOpen(true)}
+              onQuickSearch={(term) => setFilters(prev => ({ ...prev, searchKeyword: term }))}
+            />
+
+            <div className="flex flex-col lg:flex-row gap-6">
             
             {/* Left Filter Sidebar */}
             <SidebarFilter
@@ -296,6 +307,7 @@ export default function App() {
             </div>
 
           </div>
+        </div>
         )}
 
         {/* TAB 2: ANALYTICS DASHBOARD */}
