@@ -1,0 +1,14 @@
+{
+  "name": "mindx-job-hub-backend",
+  "version": "1.0.0",
+  "description": "MindX Job Hub Backend API — Node.js + Express + MongoDB",
+  "main": "server.js",
+  "scripts": {
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "seed": "node scripts/seedJobs.js"
+  },
+  "keywords": [],
+  "author": "MindX SS Team",
+  "license": "ISC"
+}
