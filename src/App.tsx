@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Navbar } from './components/layout/Navbar';
-import { SidebarFilter } from './components/layout/SidebarFilter';
+import { FilterBar } from './components/layout/FilterBar';
 import { JobCard } from './components/jobhub/JobCard';
 import { JobTableView } from './components/jobhub/JobTableView';
 import { StudentPortalView } from './components/jobhub/StudentPortalView';
@@ -14,13 +14,12 @@ import { ImportExport } from './components/tools/ImportExport';
 import { DeduplicationTool } from './components/tools/DeduplicationTool';
 import { NewsletterGenerator } from './components/smart/NewsletterGenerator';
 import { SystemDocsModal } from './components/docs/SystemDocsModal';
-import { HeroBanner } from './components/layout/HeroBanner';
 
 import { INITIAL_MOCK_JOBS, TOTAL_DB_METRICS } from './data/mockJobs';
 import { INITIAL_MOCK_STUDENTS } from './data/mockStudents';
 import { JobItem, FilterState, JobStatusType } from './types/job';
 import { exportJobsToCSV } from './utils/exportUtils';
-import { LayoutGrid, Table, GraduationCap, Download, Plus, CheckCircle } from 'lucide-react';
+import { LayoutGrid, Table, GraduationCap, Download, CheckCircle } from 'lucide-react';
 
 const INITIAL_FILTER_STATE: FilterState = {
   searchKeyword: '',
@@ -67,6 +66,7 @@ export default function App() {
       if (filters.industries.length > 0 && !filters.industries.includes(j.industry)) return false;
       if (filters.levels.length > 0 && !filters.levels.includes(j.level)) return false;
       if (filters.locations.length > 0 && !filters.locations.includes(j.location)) return false;
+      if (filters.employmentTypes.length > 0 && !filters.employmentTypes.includes(j.employmentType)) return false;
       if (filters.sources.length > 0 && !filters.sources.includes(j.source)) return false;
       if (filters.statuses.length > 0 && !filters.statuses.includes(j.status)) return false;
       if (filters.fitScores.length > 0 && !filters.fitScores.includes(j.mindxFitScore)) return false;
@@ -77,29 +77,28 @@ export default function App() {
 
   const handleAddJob = (newJob: JobItem) => {
     setJobs(prev => [newJob, ...prev]);
-    showToast(`Đã thêm thành công: "${newJob.title}"`);
+    showToast(`Đã thêm: "${newJob.title}"`);
   };
 
   const handleUpdateNotes = (jobId: string, notes: string) => {
     setJobs(prev => prev.map(j => j.id === jobId ? { ...j, ssNotes: notes } : j));
     if (selectedJobDetail?.id === jobId) setSelectedJobDetail(prev => prev ? { ...prev, ssNotes: notes } : null);
-    showToast('Đã lưu ghi chú thành công!');
+    showToast('Đã lưu ghi chú!');
   };
 
   const handleUpdateStatus = (jobId: string, status: JobStatusType) => {
     setJobs(prev => prev.map(j => j.id === jobId ? { ...j, status } : j));
     if (selectedJobDetail?.id === jobId) setSelectedJobDetail(prev => prev ? { ...prev, status } : null);
-    showToast(`Cập nhật trạng thái: "${status}"`);
+    showToast(`Trạng thái: "${status}"`);
   };
 
   const handleDeleteJob = (jobId: string) => {
     setJobs(prev => prev.filter(j => j.id !== jobId));
+    setSelectedJobDetail(null);
     showToast('Đã xóa bài tuyển dụng!');
   };
 
-  const handleMergeJobs = (_pairId: string, keepJob: JobItem) => {
-    showToast(`Đã gộp job: "${keepJob.title}"`);
-  };
+  const handleMergeJobs = (_pairId: string, keepJob: JobItem) => showToast(`Đã gộp: "${keepJob.title}"`);
 
   const handleDeleteDuplicate = (_pairId: string, removeJobId: string) => {
     setJobs(prev => prev.filter(j => j.id !== removeJobId));
@@ -115,10 +114,17 @@ export default function App() {
     showToast(`Đã gửi "${jobTitle}" cho ${studentName}!`);
   };
 
+  // Tính active filters để hiển thị pills
+  const activeFilterCount = [
+    filters.industries, filters.levels, filters.locations,
+    filters.employmentTypes, filters.sources, filters.statuses,
+    filters.fitScores, filters.selectedSkills
+  ].reduce((acc, arr) => acc + arr.length, 0) + (filters.searchKeyword ? 1 : 0);
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
 
-      {/* Toast Notification */}
+      {/* Toast */}
       {toastMessage && (
         <div className="toast-success">
           <CheckCircle className="w-4 h-4 shrink-0" />
@@ -135,165 +141,124 @@ export default function App() {
         totalJobsCount={TOTAL_DB_METRICS.totalJobsInDb}
       />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <main className="flex-1">
 
-        {/* TAB 1: JOB HUB */}
+        {/* ── TAB 1: JOB HUB ── */}
         {activeTab === 'jobhub' && (
-          <div className="space-y-5">
-            <HeroBanner
-              totalJobs={jobs.length}
-              onOpenDocs={() => setIsDocsModalOpen(true)}
-              onQuickSearch={(term) => setFilters(prev => ({ ...prev, searchKeyword: term }))}
+          <div>
+            {/* Slim hero strip */}
+            <div className="bg-white border-b border-slate-100">
+              <div className="max-w-screen-xl mx-auto px-6 py-3 flex items-center justify-between">
+                <div>
+                  <span className="text-sm font-semibold text-slate-800">Danh sách tuyển dụng</span>
+                  <span className="ml-2 text-xs text-slate-400">Intern · Fresher · Junior – đã kiểm duyệt bởi Team SS</span>
+                </div>
+                <span className="text-xs text-slate-400">
+                  Tổng DB: <strong className="text-indigo-600">{TOTAL_DB_METRICS.totalJobsInDb}</strong> jobs · Tuần này mới: <strong className="text-emerald-600">+{TOTAL_DB_METRICS.newJobsThisWeek}</strong>
+                </span>
+              </div>
+            </div>
+
+            {/* Filter bar */}
+            <FilterBar
+              filters={filters}
+              setFilters={setFilters}
+              onResetFilters={() => setFilters(INITIAL_FILTER_STATE)}
+              popularSkills={popularSkills}
+              resultCount={filteredJobs.length}
             />
 
-            <div className="flex flex-col lg:flex-row gap-5">
-
-              {/* Sidebar */}
-              <SidebarFilter
-                filters={filters}
-                setFilters={setFilters}
-                onResetFilters={() => setFilters(INITIAL_FILTER_STATE)}
-                popularSkills={popularSkills}
-              />
-
-              {/* Main content */}
-              <div className="flex-1 space-y-4 min-w-0">
-
-                {/* Control bar */}
-                <div className="card px-4 py-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <h2 className="text-sm font-bold text-slate-800">Danh sách tuyển dụng</h2>
-                      <span className="px-2 py-0.5 text-xs font-bold bg-indigo-100 text-indigo-700 rounded-full">
-                        {filteredJobs.length} kết quả
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-400 mt-0.5">Intern · Fresher · Junior – đã kiểm duyệt</p>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    {/* View toggle */}
-                    <div className="flex bg-slate-100 p-0.5 rounded-xl gap-0.5">
-                      {[
-                        { mode: 'grid', Icon: LayoutGrid, label: 'Card' },
-                        { mode: 'table', Icon: Table, label: 'Bảng' },
-                        { mode: 'student', Icon: GraduationCap, label: 'Portal' }
-                      ].map(({ mode, Icon, label }) => (
-                        <button
-                          key={mode}
-                          type="button"
-                          title={label}
-                          onClick={() => setViewMode(mode as typeof viewMode)}
-                          className={`flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-lg font-medium transition-all ${
-                            viewMode === mode
-                              ? 'bg-white text-indigo-700 shadow-sm'
-                              : 'text-slate-400 hover:text-slate-700'
-                          }`}
-                        >
-                          <Icon className="w-3.5 h-3.5" />
-                          <span className="hidden sm:inline">{label}</span>
-                        </button>
-                      ))}
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => exportJobsToCSV(filteredJobs)}
-                      className="btn-ghost text-xs"
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Xuất Excel</span>
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={() => setIsAddModalOpen(true)}
-                      className="btn-primary text-xs py-1.5"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span className="hidden sm:inline">Thêm Job</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Job list */}
-                {filteredJobs.length === 0 ? (
-                  <div className="card p-12 text-center space-y-3">
-                    <p className="text-base font-bold text-slate-800">Không tìm thấy kết quả nào</p>
-                    <p className="text-sm text-slate-500">Thử xóa bộ lọc hoặc thay đổi từ khóa tìm kiếm.</p>
-                    <button
-                      type="button"
-                      onClick={() => setFilters(INITIAL_FILTER_STATE)}
-                      className="btn-secondary text-xs mx-auto"
-                    >
-                      Xóa tất cả bộ lọc
-                    </button>
-                  </div>
-                ) : viewMode === 'grid' ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {filteredJobs.map(job => (
-                      <JobCard
-                        key={job.id}
-                        job={job}
-                        onSelectJob={setSelectedJobDetail}
-                        onMatchStudent={setMatchingJob}
-                      />
-                    ))}
-                  </div>
-                ) : viewMode === 'table' ? (
-                  <JobTableView
-                    jobs={filteredJobs}
-                    onSelectJob={setSelectedJobDetail}
-                    onMatchStudent={setMatchingJob}
-                    onDeleteJob={handleDeleteJob}
-                  />
-                ) : (
-                  <StudentPortalView
-                    jobs={filteredJobs}
-                    onSelectJob={setSelectedJobDetail}
-                  />
+            {/* View controls */}
+            <div className="max-w-screen-xl mx-auto px-6 py-3 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs text-slate-500">
+                <span className="font-semibold text-slate-800">{filteredJobs.length}</span> kết quả
+                {activeFilterCount > 0 && (
+                  <span className="text-indigo-600">· {activeFilterCount} bộ lọc đang bật</span>
                 )}
-
               </div>
+              <div className="flex items-center gap-2">
+                <div className="flex bg-slate-100 p-0.5 rounded-xl gap-0.5">
+                  {[
+                    { mode: 'grid', Icon: LayoutGrid, label: 'Card' },
+                    { mode: 'table', Icon: Table, label: 'Bảng' },
+                    { mode: 'student', Icon: GraduationCap, label: 'Portal' }
+                  ].map(({ mode, Icon, label }) => (
+                    <button
+                      key={mode}
+                      type="button"
+                      onClick={() => setViewMode(mode as typeof viewMode)}
+                      className={`flex items-center gap-1 px-2.5 py-1.5 text-xs rounded-lg font-medium transition-all ${
+                        viewMode === mode ? 'bg-white text-indigo-700 shadow-sm' : 'text-slate-400 hover:text-slate-700'
+                      }`}
+                    >
+                      <Icon className="w-3.5 h-3.5" />
+                      <span className="hidden sm:inline">{label}</span>
+                    </button>
+                  ))}
+                </div>
+                <button type="button" onClick={() => exportJobsToCSV(filteredJobs)} className="btn-ghost text-xs">
+                  <Download className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Xuất Excel</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Job list */}
+            <div className="max-w-screen-xl mx-auto px-6 pb-10">
+              {filteredJobs.length === 0 ? (
+                <div className="card p-12 text-center space-y-3">
+                  <p className="font-bold text-slate-800">Không tìm thấy kết quả nào</p>
+                  <p className="text-sm text-slate-500">Thử xóa bộ lọc hoặc thay đổi từ khóa.</p>
+                  <button type="button" onClick={() => setFilters(INITIAL_FILTER_STATE)} className="btn-secondary text-xs mx-auto">
+                    Xóa tất cả bộ lọc
+                  </button>
+                </div>
+              ) : viewMode === 'grid' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                  {filteredJobs.map(job => (
+                    <JobCard key={job.id} job={job} onSelectJob={setSelectedJobDetail} onMatchStudent={setMatchingJob} />
+                  ))}
+                </div>
+              ) : viewMode === 'table' ? (
+                <JobTableView jobs={filteredJobs} onSelectJob={setSelectedJobDetail} onMatchStudent={setMatchingJob} onDeleteJob={handleDeleteJob} />
+              ) : (
+                <StudentPortalView jobs={filteredJobs} onSelectJob={setSelectedJobDetail} />
+              )}
             </div>
           </div>
         )}
 
-        {/* TAB 2: ANALYTICS */}
+        {/* ── TAB 2: ANALYTICS ── */}
         {activeTab === 'analytics' && (
-          <div className="space-y-6">
+          <div className="max-w-screen-xl mx-auto px-6 py-6 space-y-6">
             <div>
               <h1 className="text-xl font-bold text-slate-900">Báo cáo thị trường Job</h1>
-              <p className="text-sm text-slate-500 mt-0.5">Phân tích xu hướng tuyển dụng Intern/Fresher – cập nhật theo thời gian thực.</p>
+              <p className="text-sm text-slate-500 mt-0.5">Phân tích xu hướng tuyển dụng Intern/Fresher.</p>
             </div>
             <StatCards />
             <AnalyticsCharts />
           </div>
         )}
 
-        {/* TAB 3: TOOLS */}
+        {/* ── TAB 3: TOOLS ── */}
         {activeTab === 'tools' && (
-          <div className="space-y-6">
+          <div className="max-w-screen-xl mx-auto px-6 py-6 space-y-6">
             <div>
-              <h1 className="text-xl font-bold text-slate-900">Công cụ Quản trị Hệ thống</h1>
-              <p className="text-sm text-slate-500 mt-0.5">Cào job tự động, phát hiện trùng lặp, Import/Export dữ liệu.</p>
+              <h1 className="text-xl font-bold text-slate-900">Công cụ Quản trị</h1>
+              <p className="text-sm text-slate-500 mt-0.5">Cào job tự động, phát hiện trùng lặp, Import/Export.</p>
             </div>
             <ScraperController />
-            <DeduplicationTool
-              jobs={jobs}
-              onMergeJobs={handleMergeJobs}
-              onDeleteDuplicate={handleDeleteDuplicate}
-            />
+            <DeduplicationTool jobs={jobs} onMergeJobs={handleMergeJobs} onDeleteDuplicate={handleDeleteDuplicate} />
             <ImportExport jobs={jobs} onImportJobs={handleImportJobs} />
           </div>
         )}
 
-        {/* TAB 4: SMART / NEWSLETTER */}
+        {/* ── TAB 4: SMART ── */}
         {activeTab === 'smart' && (
-          <div className="space-y-6">
+          <div className="max-w-screen-xl mx-auto px-6 py-6 space-y-6">
             <div>
               <h1 className="text-xl font-bold text-slate-900">Bản tin & Match Học viên</h1>
-              <p className="text-sm text-slate-500 mt-0.5">Tạo newsletter job và gợi ý học viên phù hợp với AI.</p>
+              <p className="text-sm text-slate-500 mt-0.5">Tạo newsletter và gợi ý học viên phù hợp.</p>
             </div>
             <NewsletterGenerator jobs={jobs} />
           </div>
@@ -301,8 +266,8 @@ export default function App() {
 
       </main>
 
-      <footer className="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-400">
-        <p>© 2026 MindX Technology Education · SS Hub v2.4 · Hệ thống nội bộ, không phát tán ra ngoài</p>
+      <footer className="border-t border-slate-100 bg-white py-4 text-center text-xs text-slate-400">
+        © 2026 MindX Technology Education · SS Hub v2.4 · Hệ thống nội bộ
       </footer>
 
       {/* Modals */}
@@ -314,25 +279,9 @@ export default function App() {
         onMatchStudent={setMatchingJob}
         onDeleteJob={handleDeleteJob}
       />
-
-      <AddJobModal
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onAddJob={handleAddJob}
-      />
-
-      <StudentMatchModal
-        job={matchingJob}
-        students={INITIAL_MOCK_STUDENTS}
-        onClose={() => setMatchingJob(null)}
-        onSendJobToStudent={handleSendJobToStudent}
-      />
-
-      <SystemDocsModal
-        isOpen={isDocsModalOpen}
-        onClose={() => setIsDocsModalOpen(false)}
-      />
-
+      <AddJobModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onAddJob={handleAddJob} />
+      <StudentMatchModal job={matchingJob} students={INITIAL_MOCK_STUDENTS} onClose={() => setMatchingJob(null)} onSendJobToStudent={handleSendJobToStudent} />
+      <SystemDocsModal isOpen={isDocsModalOpen} onClose={() => setIsDocsModalOpen(false)} />
     </div>
   );
 }
