@@ -4,8 +4,12 @@ const BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 10000,
-  headers: { 'Content-Type': 'application/json' },
+  timeout: 15000,
+  headers: {
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache',
+  },
 });
 
 // Request interceptor — log in dev
