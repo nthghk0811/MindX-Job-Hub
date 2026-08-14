@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Navbar } from './components/layout/Navbar';
 import { FilterBar } from './components/layout/FilterBar';
 import { JobCard } from './components/jobhub/JobCard';
@@ -6,6 +6,7 @@ import { JobTableView } from './components/jobhub/JobTableView';
 import { StudentPortalView } from './components/jobhub/StudentPortalView';
 import { JobDetailModal } from './components/jobhub/JobDetailModal';
 import { AddJobModal } from './components/jobhub/AddJobModal';
+import { AddStudentModal } from './components/jobhub/AddStudentModal';
 import { StudentMatchModal } from './components/jobhub/StudentMatchModal';
 import { StatCards } from './components/analytics/StatCards';
 import { AnalyticsCharts } from './components/analytics/AnalyticsCharts';
@@ -13,14 +14,15 @@ import { ScraperController } from './components/tools/ScraperController';
 import { ImportExport } from './components/tools/ImportExport';
 import { DeduplicationTool } from './components/tools/DeduplicationTool';
 import { NewsletterGenerator } from './components/smart/NewsletterGenerator';
-import { SystemDocsModal } from './components/docs/SystemDocsModal';
+import { Pagination } from './components/common/Pagination';
 
 import { INITIAL_MOCK_STUDENTS } from './data/mockStudents';
-import { JobItem, FilterState, JobStatusType } from './types/job';
+import { JobItem, FilterState, JobStatusType, MindXStudent } from './types/job';
 import { exportJobsToCSV } from './utils/exportUtils';
 import { useJobs } from './hooks/useJobs';
 import { createJob, updateJobStatus, updateJobNotes, deleteJob } from './services/jobService';
-import { LayoutGrid, Table, GraduationCap, Download, CheckCircle, AlertTriangle, Loader2 } from 'lucide-react';
+import { getStudents, createStudent, bulkCreateStudents } from './services/studentService';
+import { LayoutGrid, Table, GraduationCap, Download, CheckCircle, AlertTriangle } from 'lucide-react';
 
 const INITIAL_FILTER_STATE: FilterState = {
   searchKeyword: '',
@@ -40,14 +42,38 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'jobhub' | 'analytics' | 'tools' | 'smart'>('jobhub');
   const [viewMode, setViewMode] = useState<'grid' | 'table' | 'student'>('grid');
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(24);
+
+  // Modals & Details State
   const [selectedJobDetail, setSelectedJobDetail] = useState<JobItem | null>(null);
   const [matchingJob, setMatchingJob] = useState<JobItem | null>(null);
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isDocsModalOpen, setIsDocsModalOpen] = useState(false);
+  const [isAddJobModalOpen, setIsAddJobModalOpen] = useState(false);
+  const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // Dynamic Students State
+  const [students, setStudents] = useState<MindXStudent[]>(INITIAL_MOCK_STUDENTS);
+
   // ── API-backed jobs state ─────────────────────────────
-  const { jobs, loading, error, total, usingMock, refetch, addJobLocally, updateJobLocally, removeJobLocally } = useJobs(filters);
+  const { jobs, loading, total, usingMock, refetch, addJobLocally, updateJobLocally, removeJobLocally } = useJobs(filters);
+
+  // Fetch live students from backend on mount
+  useEffect(() => {
+    getStudents()
+      .then((data) => {
+        if (data && data.length > 0) setStudents(data);
+      })
+      .catch(() => {
+        // Keep initial mock students if backend fails
+      });
+  }, []);
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -60,10 +86,16 @@ export default function App() {
     return Object.keys(skillCounts).sort((a, b) => skillCounts[b] - skillCounts[a]);
   }, [jobs]);
 
-  // filteredJobs = jobs (filtering done server-side; client fallback also filters)
   const filteredJobs = jobs;
 
-  // ── Handlers (API + optimistic local update) ──────────
+  // ── Pagination Calculation ────────────────────────────
+  const totalPages = Math.ceil(filteredJobs.length / pageSize) || 1;
+  const paginatedJobs = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredJobs.slice(start, start + pageSize);
+  }, [filteredJobs, currentPage, pageSize]);
+
+  // ── Job Handlers ──────────────────────────────────────
   const handleAddJob = async (newJob: JobItem) => {
     try {
       if (!usingMock) {
@@ -72,9 +104,9 @@ export default function App() {
       } else {
         addJobLocally(newJob);
       }
-      showToast(`Đã thêm: "${newJob.title}"`);
+      showToast(`Đã thêm bài tuyển dụng: "${newJob.title}"`);
     } catch {
-      addJobLocally(newJob); // optimistic fallback
+      addJobLocally(newJob);
       showToast(`Đã thêm: "${newJob.title}" (offline)`);
     }
   };
@@ -119,11 +151,38 @@ export default function App() {
     refetch();
   };
 
-  const handleSendJobToStudent = (studentName: string, jobTitle: string) => {
-    showToast(`Đã gửi "${jobTitle}" cho ${studentName}!`);
+  // ── Student Handlers ──────────────────────────────────
+  const handleAddStudent = async (studentData: Omit<MindXStudent, 'id'>) => {
+    try {
+      const created = await createStudent(studentData);
+      setStudents(prev => [created, ...prev]);
+      showToast(`Đã thêm học viên: ${studentData.fullName}`);
+    } catch {
+      const fallback: MindXStudent = { ...studentData, id: `std-${Date.now()}` };
+      setStudents(prev => [fallback, ...prev]);
+      showToast(`Đã thêm học viên: ${studentData.fullName}`);
+    }
   };
 
-  // Tính active filters để hiển thị pills
+  const handleBulkAddStudents = async (studentList: Omit<MindXStudent, 'id'>[]) => {
+    try {
+      const createdList = await bulkCreateStudents(studentList);
+      setStudents(prev => [...createdList, ...prev]);
+      showToast(`Đã import thành công ${studentList.length} học viên!`);
+    } catch {
+      const fallbackList: MindXStudent[] = studentList.map((s, idx) => ({
+        ...s,
+        id: `std-${Date.now()}-${idx}`
+      }));
+      setStudents(prev => [...fallbackList, ...prev]);
+      showToast(`Đã import thành công ${studentList.length} học viên!`);
+    }
+  };
+
+  const handleSendJobToStudent = (studentName: string, jobTitle: string) => {
+    showToast(`Đã gợi ý "${jobTitle}" cho học viên ${studentName}!`);
+  };
+
   const activeFilterCount = [
     filters.industries, filters.levels, filters.locations,
     filters.employmentTypes, filters.sources, filters.statuses,
@@ -131,9 +190,9 @@ export default function App() {
   ].reduce((acc, arr) => acc + arr.length, 0) + (filters.searchKeyword ? 1 : 0);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col">
+    <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
 
-      {/* Toast */}
+      {/* Toast Alert */}
       {toastMessage && (
         <div className="toast-success">
           <CheckCircle className="w-4 h-4 shrink-0" />
@@ -153,8 +212,8 @@ export default function App() {
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        onOpenAddModal={() => setIsAddModalOpen(true)}
-        onOpenDocsModal={() => setIsDocsModalOpen(true)}
+        onOpenAddJobModal={() => setIsAddJobModalOpen(true)}
+        onOpenAddStudentModal={() => setIsAddStudentModalOpen(true)}
         totalJobsCount={usingMock ? jobs.length : total}
       />
 
@@ -171,7 +230,7 @@ export default function App() {
                   <span className="ml-2 text-xs text-slate-400">Intern · Fresher · Junior – đã kiểm duyệt bởi Team SS</span>
                 </div>
                 <span className="text-xs text-slate-400">
-                  Tổng DB: <strong className="text-indigo-600">{usingMock ? jobs.length : total}</strong> jobs
+                  Tổng DB: <strong className="text-indigo-600 font-semibold">{usingMock ? jobs.length : total}</strong> jobs
                   {usingMock && <span className="text-amber-500 ml-1">(mock)</span>}
                 </span>
               </div>
@@ -186,10 +245,10 @@ export default function App() {
               resultCount={usingMock ? filteredJobs.length : total}
             />
 
-            {/* View controls */}
+            {/* View controls & Summary */}
             <div className="max-w-screen-xl mx-auto px-6 py-3 flex items-center justify-between">
               <div className="flex items-center gap-2 text-xs text-slate-500">
-                <span className="font-semibold text-slate-800">{filteredJobs.length}</span> kết quả
+                <span className="font-semibold text-slate-800">{filteredJobs.length}</span> kết quả phù hợp
                 {activeFilterCount > 0 && (
                   <span className="text-indigo-600">· {activeFilterCount} bộ lọc đang bật</span>
                 )}
@@ -221,7 +280,7 @@ export default function App() {
               </div>
             </div>
 
-            {/* Job list */}
+            {/* Job list & Pagination */}
             <div className="max-w-screen-xl mx-auto px-6 pb-10">
               {loading ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -244,22 +303,36 @@ export default function App() {
                 </div>
               ) : filteredJobs.length === 0 ? (
                 <div className="card p-12 text-center space-y-3">
-                  <p className="font-bold text-slate-800">Không tìm thấy kết quả nào</p>
-                  <p className="text-sm text-slate-500">Thử xóa bộ lọc hoặc thay đổi từ khóa.</p>
+                  <p className="font-bold text-slate-800">Không tìm thấy bài tuyển dụng nào phù hợp</p>
+                  <p className="text-sm text-slate-500">Thử xóa bớt bộ lọc hoặc tìm kiếm với từ khóa khác.</p>
                   <button type="button" onClick={() => setFilters(INITIAL_FILTER_STATE)} className="btn-secondary text-xs mx-auto">
                     Xóa tất cả bộ lọc
                   </button>
                 </div>
-              ) : viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {filteredJobs.map(job => (
-                    <JobCard key={job.id} job={job} onSelectJob={setSelectedJobDetail} onMatchStudent={setMatchingJob} />
-                  ))}
-                </div>
-              ) : viewMode === 'table' ? (
-                <JobTableView jobs={filteredJobs} onSelectJob={setSelectedJobDetail} onMatchStudent={setMatchingJob} onDeleteJob={handleDeleteJob} />
               ) : (
-                <StudentPortalView jobs={filteredJobs} onSelectJob={setSelectedJobDetail} />
+                <>
+                  {viewMode === 'grid' ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {paginatedJobs.map(job => (
+                        <JobCard key={job.id} job={job} onSelectJob={setSelectedJobDetail} onMatchStudent={setMatchingJob} />
+                      ))}
+                    </div>
+                  ) : viewMode === 'table' ? (
+                    <JobTableView jobs={paginatedJobs} onSelectJob={setSelectedJobDetail} onMatchStudent={setMatchingJob} onDeleteJob={handleDeleteJob} />
+                  ) : (
+                    <StudentPortalView jobs={paginatedJobs} onSelectJob={setSelectedJobDetail} />
+                  )}
+
+                  {/* Clean, intuitive Pagination */}
+                  <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    totalItems={filteredJobs.length}
+                    pageSize={pageSize}
+                    onPageChange={setCurrentPage}
+                    onPageSizeChange={setPageSize}
+                  />
+                </>
               )}
             </div>
           </div>
@@ -270,7 +343,7 @@ export default function App() {
           <div className="max-w-screen-xl mx-auto px-6 py-6 space-y-6">
             <div>
               <h1 className="text-xl font-bold text-slate-900">Báo cáo thị trường Job</h1>
-              <p className="text-sm text-slate-500 mt-0.5">Phân tích xu hướng tuyển dụng Intern/Fresher.</p>
+              <p className="text-sm text-slate-500 mt-0.5">Phân tích xu hướng tuyển dụng Intern/Fresher theo dữ liệu thực tế từ Database.</p>
             </div>
             <StatCards />
             <AnalyticsCharts />
@@ -282,7 +355,7 @@ export default function App() {
           <div className="max-w-screen-xl mx-auto px-6 py-6 space-y-6">
             <div>
               <h1 className="text-xl font-bold text-slate-900">Công cụ Quản trị</h1>
-              <p className="text-sm text-slate-500 mt-0.5">Cào job tự động, phát hiện trùng lặp, Import/Export.</p>
+              <p className="text-sm text-slate-500 mt-0.5">Cào job tự động, phát hiện trùng lặp, Import & Export file dữ liệu.</p>
             </div>
             <ScraperController />
             <DeduplicationTool jobs={jobs} onMergeJobs={handleMergeJobs} onDeleteDuplicate={handleDeleteDuplicate} />
@@ -295,7 +368,7 @@ export default function App() {
           <div className="max-w-screen-xl mx-auto px-6 py-6 space-y-6">
             <div>
               <h1 className="text-xl font-bold text-slate-900">Bản tin & Match Học viên</h1>
-              <p className="text-sm text-slate-500 mt-0.5">Tạo newsletter và gợi ý học viên phù hợp.</p>
+              <p className="text-sm text-slate-500 mt-0.5">Tạo newsletter tự động và gợi ý danh sách học viên phù hợp với từng bài tuyển dụng.</p>
             </div>
             <NewsletterGenerator jobs={jobs} />
           </div>
@@ -304,7 +377,7 @@ export default function App() {
       </main>
 
       <footer className="border-t border-slate-100 bg-white py-4 text-center text-xs text-slate-400">
-        © 2026 MindX Technology Education · SS Hub v2.4 · Hệ thống nội bộ
+        © 2026 MindX Technology School · Student Success System · Hệ thống nội bộ
       </footer>
 
       {/* Modals */}
@@ -316,9 +389,19 @@ export default function App() {
         onMatchStudent={setMatchingJob}
         onDeleteJob={handleDeleteJob}
       />
-      <AddJobModal isOpen={isAddModalOpen} onClose={() => setIsAddModalOpen(false)} onAddJob={handleAddJob} />
-      <StudentMatchModal job={matchingJob} students={INITIAL_MOCK_STUDENTS} onClose={() => setMatchingJob(null)} onSendJobToStudent={handleSendJobToStudent} />
-      <SystemDocsModal isOpen={isDocsModalOpen} onClose={() => setIsDocsModalOpen(false)} />
+      <AddJobModal isOpen={isAddJobModalOpen} onClose={() => setIsAddJobModalOpen(false)} onAddJob={handleAddJob} />
+      <AddStudentModal
+        isOpen={isAddStudentModalOpen}
+        onClose={() => setIsAddStudentModalOpen(false)}
+        onAddStudent={handleAddStudent}
+        onBulkAddStudents={handleBulkAddStudents}
+      />
+      <StudentMatchModal
+        job={matchingJob}
+        students={students}
+        onClose={() => setMatchingJob(null)}
+        onSendJobToStudent={handleSendJobToStudent}
+      />
     </div>
   );
 }
