@@ -2,7 +2,7 @@ export type IndustryType = 'Code' | 'Data Analysis' | 'Business Analysis';
 export type LevelType = 'Intern' | 'Fresher' | 'Junior';
 export type LocationType = 'Hà Nội' | 'TP.HCM' | 'Remote' | 'Hybrid';
 export type EmploymentType = 'Fulltime' | 'Parttime' | 'Internship' | 'Trainee';
-export type SourceType = 'TopCV' | 'ITviec' | 'LinkedIn' | 'VietnamWorks' | 'Ybox' | 'Facebook Group';
+export type SourceType = 'TopCV' | 'ITviec' | 'LinkedIn' | 'VietnamWorks' | 'Ybox' | 'Facebook Group' | 'JobsGo' | 'NEU' | 'Manual';
 export type JobStatusType = 'Còn tuyển' | 'Hết hạn' | 'Chưa xác minh' | 'Đã gửi học viên';
 export type FitScoreType = 'High' | 'Medium' | 'Low';
 
@@ -20,6 +20,8 @@ export interface JobItem {
   requirements: string;
   skills: string[];
   salary: string;
+  salaryMin?: number | null;
+  salaryMax?: number | null;
   benefits: string;
   deadline: string;
   originalUrl: string;

@@ -14,7 +14,7 @@ interface FilterBarProps {
 const INDUSTRIES: IndustryType[] = ['Code', 'Data Analysis', 'Business Analysis'];
 const LEVELS: LevelType[] = ['Intern', 'Fresher', 'Junior'];
 const LOCATIONS: LocationType[] = ['Hà Nội', 'TP.HCM', 'Remote', 'Hybrid'];
-const SOURCES: SourceType[] = ['TopCV', 'ITviec', 'LinkedIn', 'VietnamWorks', 'Ybox', 'Facebook Group'];
+const SOURCES: SourceType[] = ['JobsGo', 'NEU', 'TopCV', 'ITviec', 'LinkedIn', 'VietnamWorks', 'Ybox', 'Facebook Group', 'Manual'];
 const STATUSES: JobStatusType[] = ['Còn tuyển', 'Hết hạn', 'Chưa xác minh', 'Đã gửi học viên'];
 const FIT_SCORES: FitScoreType[] = ['High', 'Medium', 'Low'];
 const EMP_TYPES: EmploymentType[] = ['Internship', 'Fulltime', 'Parttime', 'Trainee'];
