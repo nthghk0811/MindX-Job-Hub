@@ -38,7 +38,7 @@ function buildQuery(query) {
 router.get('/', async (req, res) => {
   try {
     const page  = Math.max(1, parseInt(req.query.page)  || 1);
-    const limit = Math.min(100, parseInt(req.query.limit) || 20);
+    const limit = Math.min(500, parseInt(req.query.limit) || 20);
     const skip  = (page - 1) * limit;
 
     const query = buildQuery(req.query);

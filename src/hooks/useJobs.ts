@@ -30,7 +30,7 @@ function filtersToParams(filters: FilterState) {
     // Salary range: "3-15" → salaryMin=3, salaryMax=15
     salaryMin: filters.salaryRange ? Number(filters.salaryRange.split('-')[0]) || undefined : undefined,
     salaryMax: filters.salaryRange ? Number(filters.salaryRange.split('-')[1]) || undefined : undefined,
-    limit: 100,
+    limit: 500, // DB có 484 jobs, load hết một lần
   };
 }
 
