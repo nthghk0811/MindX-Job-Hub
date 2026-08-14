@@ -34,8 +34,9 @@ app.use((err, _req, res, _next) => {
 });
 
 // ── Connect MongoDB & Start ────────────────────────────
-const PORT = process.env.PORT || 5000;
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/mindx_job_hub';
+const PORT = process.env.PORT ;
+const MONGO_URI = process.env.MONGO_URI ;
+//remove fallback to check if problem is the mongo atlas url;
 
 mongoose
   .connect(MONGO_URI)

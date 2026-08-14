@@ -161,7 +161,7 @@ const jobSchema = new mongoose.Schema(
       type: String,
       required: true,
       enum: {
-        values: ['TopCV', 'ITviec', 'LinkedIn', 'VietnamWorks', 'Ybox', 'Facebook Group', 'Manual'],
+        values: ['TopCV', 'ITviec', 'LinkedIn', 'VietnamWorks', 'Ybox', 'Facebook Group', 'JobsGo', 'NEU', 'Manual'],
         message: 'Nguồn không hợp lệ',
       },
     },

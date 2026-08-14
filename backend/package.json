@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "nodemon server.js",
     "start": "node server.js",
-    "seed": "node scripts/seedJobs.js"
+    "seed": "node scripts/seedJobs.js",
+    "import-csv": "node scripts/importCsv.js",
+    "import-real": "node scripts/processAndImport.js"
   },
   "keywords": [],
   "author": "MindX SS Team",
