@@ -2,8 +2,8 @@ import React from 'react';
 import { Briefcase, BarChart3, Wrench, Sparkles, Plus, UserPlus, LogOut, User } from 'lucide-react';
 
 interface NavbarProps {
-  activeTab: 'jobhub' | 'analytics' | 'tools' | 'smart';
-  setActiveTab: (tab: 'jobhub' | 'analytics' | 'tools' | 'smart') => void;
+  activeTab: 'jobhub' | 'analytics' | 'tools';
+  setActiveTab: (tab: 'jobhub' | 'analytics' | 'tools') => void;
   onOpenAddJobModal: () => void;
   onOpenAddStudentModal: () => void;
   totalJobsCount: number;
@@ -12,10 +12,9 @@ interface NavbarProps {
 }
 
 const NAV_ITEMS = [
-  { id: 'jobhub',    label: 'Job Hub',            icon: Briefcase },
-  { id: 'analytics', label: 'Báo cáo',            icon: BarChart3  },
-  { id: 'tools',     label: 'Quản lý Dữ liệu',    icon: Wrench     },
-  { id: 'smart',     label: 'Bản tin Tuyển dụng', icon: Sparkles  },
+  { id: 'jobhub',    label: 'Job Hub',         icon: Briefcase },
+  { id: 'analytics', label: 'Báo cáo',         icon: BarChart3  },
+  { id: 'tools',     label: 'Quản lý Dữ liệu', icon: Wrench     },
 ] as const;
 
 export const Navbar: React.FC<NavbarProps> = ({

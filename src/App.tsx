@@ -12,7 +12,6 @@ import { StatCards } from './components/analytics/StatCards';
 import { AnalyticsCharts } from './components/analytics/AnalyticsCharts';
 import { ImportExport } from './components/tools/ImportExport';
 import { DeduplicationTool } from './components/tools/DeduplicationTool';
-import { NewsletterGenerator } from './components/smart/NewsletterGenerator';
 import { Pagination } from './components/common/Pagination';
 import { LoginScreen } from './components/auth/LoginScreen';
 
@@ -43,7 +42,7 @@ export default function App() {
   });
 
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTER_STATE);
-  const [activeTab, setActiveTab] = useState<'jobhub' | 'analytics' | 'tools' | 'smart'>('jobhub');
+  const [activeTab, setActiveTab] = useState<'jobhub' | 'analytics' | 'tools'>('jobhub');
   const [viewMode, setViewMode] = useState<'grid' | 'table' | 'student'>('grid');
 
   // Pagination State
@@ -382,17 +381,6 @@ export default function App() {
             </div>
             <DeduplicationTool jobs={jobs} onMergeJobs={handleMergeJobs} onDeleteDuplicate={handleDeleteDuplicate} />
             <ImportExport jobs={jobs} onImportJobs={handleImportJobs} />
-          </div>
-        )}
-
-        {/* ── TAB 4: SMART ── */}
-        {activeTab === 'smart' && (
-          <div className="max-w-screen-xl mx-auto px-6 py-6 space-y-6">
-            <div>
-              <h1 className="text-xl font-bold text-slate-900">Bản tin Tuyển dụng (Newsletter)</h1>
-              <p className="text-sm text-slate-500 mt-0.5">Tạo bản tin tổng hợp Markdown tự động từ các bài tuyển dụng đang mở để gửi cho học viên.</p>
-            </div>
-            <NewsletterGenerator jobs={jobs} />
           </div>
         )}
 
