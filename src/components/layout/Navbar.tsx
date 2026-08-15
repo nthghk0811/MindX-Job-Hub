@@ -1,5 +1,5 @@
 import React from 'react';
-import { Briefcase, BarChart3, Wrench, Sparkles, Plus, UserPlus } from 'lucide-react';
+import { Briefcase, BarChart3, Wrench, Sparkles, Plus, UserPlus, LogOut, User } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: 'jobhub' | 'analytics' | 'tools' | 'smart';
@@ -7,6 +7,8 @@ interface NavbarProps {
   onOpenAddJobModal: () => void;
   onOpenAddStudentModal: () => void;
   totalJobsCount: number;
+  currentUser?: string | null;
+  onLogout?: () => void;
 }
 
 const NAV_ITEMS = [
@@ -22,6 +24,8 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenAddJobModal,
   onOpenAddStudentModal,
   totalJobsCount,
+  currentUser,
+  onLogout,
 }) => {
   return (
     <header className="sticky top-0 z-30 bg-white border-b border-slate-200 shadow-sm">
@@ -60,10 +64,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             </div>
           </nav>
 
-          {/* Right Actions: Job Badge + Add Student + Add Job */}
+          {/* Right Actions */}
           <div className="flex items-center gap-2 shrink-0">
             {/* DB count badge */}
-            <span className="hidden lg:flex items-center gap-1.5 text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/50">
+            <span className="hidden xl:flex items-center gap-1.5 text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200/50">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
               <span className="font-semibold text-slate-700">{totalJobsCount.toLocaleString()}</span> jobs
             </span>
@@ -89,6 +93,26 @@ export const Navbar: React.FC<NavbarProps> = ({
               <Plus className="w-3.5 h-3.5" />
               <span>Thêm Job</span>
             </button>
+
+            {/* User Profile & Logout */}
+            {currentUser && onLogout && (
+              <div className="flex items-center pl-2 ml-1 border-l border-slate-200 gap-1.5">
+                <div className="hidden sm:flex items-center gap-1.5 bg-slate-100/80 px-2 py-1 rounded-lg text-xs font-semibold text-slate-700">
+                  <div className="w-5 h-5 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px] font-bold">
+                    A
+                  </div>
+                  <span>{currentUser}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={onLogout}
+                  className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                  title="Đăng xuất"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </div>
 
         </div>

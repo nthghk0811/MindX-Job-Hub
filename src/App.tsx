@@ -15,6 +15,7 @@ import { ImportExport } from './components/tools/ImportExport';
 import { DeduplicationTool } from './components/tools/DeduplicationTool';
 import { NewsletterGenerator } from './components/smart/NewsletterGenerator';
 import { Pagination } from './components/common/Pagination';
+import { LoginScreen } from './components/auth/LoginScreen';
 
 import { INITIAL_MOCK_STUDENTS } from './data/mockStudents';
 import { JobItem, FilterState, JobStatusType, MindXStudent } from './types/job';
@@ -38,6 +39,10 @@ const INITIAL_FILTER_STATE: FilterState = {
 };
 
 export default function App() {
+  const [currentUser, setCurrentUser] = useState<string | null>(() => {
+    return localStorage.getItem('mindx_auth_user');
+  });
+
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTER_STATE);
   const [activeTab, setActiveTab] = useState<'jobhub' | 'analytics' | 'tools' | 'smart'>('jobhub');
   const [viewMode, setViewMode] = useState<'grid' | 'table' | 'student'>('grid');
@@ -189,6 +194,23 @@ export default function App() {
     filters.fitScores, filters.selectedSkills
   ].reduce((acc, arr) => acc + arr.length, 0) + (filters.searchKeyword ? 1 : 0);
 
+  const handleLogin = (username: string) => {
+    localStorage.setItem('mindx_auth_user', username);
+    setCurrentUser(username);
+    showToast(`Chào mừng ${username} đến với MindX Job Hub!`);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('mindx_auth_user');
+    setCurrentUser(null);
+    showToast('Đã đăng xuất thành công.');
+  };
+
+  // If not logged in, show Login Screen
+  if (!currentUser) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
 
@@ -215,6 +237,8 @@ export default function App() {
         onOpenAddJobModal={() => setIsAddJobModalOpen(true)}
         onOpenAddStudentModal={() => setIsAddStudentModalOpen(true)}
         totalJobsCount={usingMock ? jobs.length : total}
+        currentUser={currentUser}
+        onLogout={handleLogout}
       />
 
       <main className="flex-1">
