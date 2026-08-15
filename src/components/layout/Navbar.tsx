@@ -12,10 +12,10 @@ interface NavbarProps {
 }
 
 const NAV_ITEMS = [
-  { id: 'jobhub',    label: 'Job Hub',        icon: Briefcase },
-  { id: 'analytics', label: 'Báo cáo',        icon: BarChart3  },
-  { id: 'tools',     label: 'Công cụ Admin',  icon: Wrench     },
-  { id: 'smart',     label: 'Bản tin & Match', icon: Sparkles  },
+  { id: 'jobhub',    label: 'Job Hub',            icon: Briefcase },
+  { id: 'analytics', label: 'Báo cáo',            icon: BarChart3  },
+  { id: 'tools',     label: 'Quản lý Dữ liệu',    icon: Wrench     },
+  { id: 'smart',     label: 'Bản tin Tuyển dụng', icon: Sparkles  },
 ] as const;
 
 export const Navbar: React.FC<NavbarProps> = ({

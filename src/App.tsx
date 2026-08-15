@@ -10,7 +10,6 @@ import { AddStudentModal } from './components/jobhub/AddStudentModal';
 import { StudentMatchModal } from './components/jobhub/StudentMatchModal';
 import { StatCards } from './components/analytics/StatCards';
 import { AnalyticsCharts } from './components/analytics/AnalyticsCharts';
-import { ScraperController } from './components/tools/ScraperController';
 import { ImportExport } from './components/tools/ImportExport';
 import { DeduplicationTool } from './components/tools/DeduplicationTool';
 import { NewsletterGenerator } from './components/smart/NewsletterGenerator';
@@ -378,10 +377,9 @@ export default function App() {
         {activeTab === 'tools' && (
           <div className="max-w-screen-xl mx-auto px-6 py-6 space-y-6">
             <div>
-              <h1 className="text-xl font-bold text-slate-900">Công cụ Quản trị</h1>
-              <p className="text-sm text-slate-500 mt-0.5">Cào job tự động, phát hiện trùng lặp, Import & Export file dữ liệu.</p>
+              <h1 className="text-xl font-bold text-slate-900">Quản lý Dữ liệu & Trùng lặp</h1>
+              <p className="text-sm text-slate-500 mt-0.5">Phát hiện & loại bỏ bài tuyển dụng trùng lặp trên Database, Import & Export file Excel/CSV.</p>
             </div>
-            <ScraperController />
             <DeduplicationTool jobs={jobs} onMergeJobs={handleMergeJobs} onDeleteDuplicate={handleDeleteDuplicate} />
             <ImportExport jobs={jobs} onImportJobs={handleImportJobs} />
           </div>
@@ -391,8 +389,8 @@ export default function App() {
         {activeTab === 'smart' && (
           <div className="max-w-screen-xl mx-auto px-6 py-6 space-y-6">
             <div>
-              <h1 className="text-xl font-bold text-slate-900">Bản tin & Match Học viên</h1>
-              <p className="text-sm text-slate-500 mt-0.5">Tạo newsletter tự động và gợi ý danh sách học viên phù hợp với từng bài tuyển dụng.</p>
+              <h1 className="text-xl font-bold text-slate-900">Bản tin Tuyển dụng (Newsletter)</h1>
+              <p className="text-sm text-slate-500 mt-0.5">Tạo bản tin tổng hợp Markdown tự động từ các bài tuyển dụng đang mở để gửi cho học viên.</p>
             </div>
             <NewsletterGenerator jobs={jobs} />
           </div>

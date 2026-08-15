@@ -26,6 +26,10 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({
   const [notes, setNotes] = useState(job.ssNotes || '');
   const [saved, setSaved] = useState(false);
 
+  React.useEffect(() => {
+    setNotes(job.ssNotes || '');
+  }, [job]);
+
   const handleSave = () => {
     onUpdateSsNotes(job.id, notes);
     setSaved(true);
@@ -81,7 +85,9 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({
               <p className={`font-bold ${
                 job.mindxFitScore === 'High'   ? 'text-emerald-700' :
                 job.mindxFitScore === 'Medium' ? 'text-amber-700'   : 'text-rose-700'
-              }`}>{job.mindxFitScore} ≈ 92%</p>
+              }`}>
+                {job.mindxFitScore === 'High' ? 'High (Khớp cao)' : job.mindxFitScore === 'Medium' ? 'Medium (Khớp TB)' : 'Low (Khớp thấp)'}
+              </p>
             </div>
             <div>
               <p className={FIELD_LABEL}>Nguồn</p>
