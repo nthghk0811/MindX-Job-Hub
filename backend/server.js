@@ -41,8 +41,8 @@ app.use((err, _req, res, _next) => {
 });
 
 // ── Connect MongoDB & Start ────────────────────────────
-const PORT = process.env.PORT ;
-const MONGO_URI = process.env.MONGO_URI ;
+const PORT = process.env.PORT || 5000;
+const MONGO_URI = process.env.MONGO_URI;
 //remove fallback to check if problem is the mongo atlas url;
 
 mongoose
