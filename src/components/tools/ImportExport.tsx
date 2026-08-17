@@ -3,7 +3,7 @@ import { UploadCloud, Download, CheckCircle, AlertCircle, X, FileSpreadsheet, Lo
 import { JobItem } from '../../types/job';
 import { exportJobsToCSV } from '../../utils/exportUtils';
 import { parseImportFile } from '../../utils/parseImportFile';
-import { createJob } from '../../services/jobService';
+import { importJobsFile } from '../../services/jobService';
 
 interface ImportExportProps {
   jobs: JobItem[];
@@ -29,6 +29,7 @@ export const ImportExport: React.FC<ImportExportProps> = ({ jobs, onImportJobs }
   const [state, setState] = useState<ImportState>(INIT);
   const [isDragOver, setIsDragOver] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const fileRef = useRef<File | null>(null); // stores original File for bulk upload
 
   // ── Parse file ──────────────────────────────────────
   async function handleFile(file: File) {
@@ -40,6 +41,7 @@ export const ImportExport: React.FC<ImportExportProps> = ({ jobs, onImportJobs }
     }
 
     setState({ ...INIT, status: 'parsing', fileName: file.name });
+    fileRef.current = file; // store for later bulk upload
     try {
       const { jobs: parsed, errors } = await parseImportFile(file);
       setState(s => ({
@@ -54,25 +56,21 @@ export const ImportExport: React.FC<ImportExportProps> = ({ jobs, onImportJobs }
     }
   }
 
-  // ── Import vào DB ───────────────────────────────────
+  // ── Import vào DB — single bulk file upload ──────────
   async function handleImport() {
+    if (!fileRef.current) return;
     setState(s => ({ ...s, status: 'importing' }));
-    let imported = 0, skipped = 0;
-    const savedJobs: JobItem[] = [];
-
-    for (const job of state.parsed) {
-      try {
-        const saved = await createJob(job);
-        savedJobs.push(saved);
-        imported++;
-      } catch (e: any) {
-        // Trùng URL hoặc lỗi validation → bỏ qua
-        skipped++;
-      }
+    try {
+      const result = await importJobsFile(fileRef.current);
+      // importJobsFile sends the raw file to POST /api/jobs/import (server-side parse + bulk insert)
+      const inserted: number = result.inserted ?? 0;
+      const skipped: number  = result.skipped  ?? 0;
+      // Trigger parent refresh — pass empty array since server handled insert
+      onImportJobs([]);
+      setState(s => ({ ...s, status: 'done', imported: inserted, skipped }));
+    } catch (e: any) {
+      setState(s => ({ ...s, status: 'error', errorMsg: e.message || 'Lỗi import lên server' }));
     }
-
-    onImportJobs(savedJobs);
-    setState(s => ({ ...s, status: 'done', imported, skipped }));
   }
 
   // ── Drag & Drop handlers ────────────────────────────

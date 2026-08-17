@@ -13,6 +13,14 @@ interface JobDetailModalProps {
 
 const FIELD_LABEL = 'block text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5';
 
+// Sanitize URL — prevent javascript: protocol XSS
+function safeUrl(url?: string): string {
+  if (!url) return '#';
+  const cleaned = url.trim();
+  if (/^javascript:/i.test(cleaned)) return '#';
+  return cleaned;
+}
+
 export const JobDetailModal: React.FC<JobDetailModalProps> = ({
   job,
   onClose,
@@ -112,7 +120,7 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({
             </div>
             <div>
               <p className={FIELD_LABEL}>Link gốc</p>
-              <a href={job.originalUrl} target="_blank" rel="noreferrer"
+              <a href={safeUrl(job.originalUrl)} target="_blank" rel="noreferrer noopener"
                 className="text-indigo-600 hover:underline text-xs flex items-center gap-0.5 font-semibold mt-1">
                 Mở JD <ExternalLink className="w-3 h-3" />
               </a>
@@ -192,9 +200,9 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({
                 Gợi ý học viên phù hợp
               </button>
               <a
-                href={job.originalUrl}
+                href={safeUrl(job.originalUrl)}
                 target="_blank"
-                rel="noreferrer"
+                rel="noreferrer noopener"
                 className="btn-primary"
               >
                 Mở link JD gốc

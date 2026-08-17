@@ -1,6 +1,10 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'mindx_job_hub_secret_key_2026';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error('❌ FATAL: JWT_SECRET is not set in environment. Server will not start securely.');
+  process.exit(1);
+}
 
 function authMiddleware(req, res, next) {
   const authHeader = req.headers.authorization;

@@ -15,7 +15,7 @@ import { DeduplicationTool } from './components/tools/DeduplicationTool';
 import { Pagination } from './components/common/Pagination';
 import { LoginScreen } from './components/auth/LoginScreen';
 
-import { INITIAL_MOCK_STUDENTS } from './data/mockStudents';
+import { INITIAL_MOCK_STUDENTS } from './data/mockStudents'; // fallback only
 import { JobItem, FilterState, JobStatusType, MindXStudent } from './types/job';
 import { exportJobsToCSV } from './utils/exportUtils';
 import { useJobs } from './hooks/useJobs';
@@ -58,8 +58,8 @@ export default function App() {
   const [isAddStudentModalOpen, setIsAddStudentModalOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Dynamic Students State
-  const [students, setStudents] = useState<MindXStudent[]>(INITIAL_MOCK_STUDENTS);
+  // Dynamic Students State — starts empty, loaded from API
+  const [students, setStudents] = useState<MindXStudent[]>([]);
 
   // ── API-backed jobs state ─────────────────────────────
   const { jobs, loading, total, usingMock, refetch, addJobLocally, updateJobLocally, removeJobLocally } = useJobs(filters);
@@ -69,9 +69,10 @@ export default function App() {
     getStudents()
       .then((data) => {
         if (data && data.length > 0) setStudents(data);
+        else setStudents(INITIAL_MOCK_STUDENTS); // fallback to mock if DB is empty
       })
       .catch(() => {
-        // Keep initial mock students if backend fails
+        setStudents(INITIAL_MOCK_STUDENTS); // fallback if backend unavailable
       });
   }, []);
 

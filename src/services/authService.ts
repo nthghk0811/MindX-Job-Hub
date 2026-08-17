@@ -40,9 +40,17 @@ export const authService = {
     const raw = localStorage.getItem(USER_KEY);
     if (!raw) return null;
     try {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      // Validate the parsed object has expected shape
+      if (!parsed.username || !parsed.role) {
+        this.logout();
+        return null;
+      }
+      return parsed as AuthUser;
     } catch {
-      return { username: raw, name: raw, role: 'admin' };
+      // Corrupt data — clear and force re-login
+      this.logout();
+      return null;
     }
   },
 
