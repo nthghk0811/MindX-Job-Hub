@@ -22,6 +22,7 @@ app.use(express.urlencoded({ extended: true }));
 if (process.env.NODE_ENV === 'development') app.use(morgan('dev'));
 
 // ── Routes ─────────────────────────────────────────────
+app.use('/api/auth',      require('./routes/auth'));
 app.use('/api/jobs',      require('./routes/jobs'));
 app.use('/api/analytics', require('./routes/analytics'));
 app.use('/api/students',  require('./routes/students'));

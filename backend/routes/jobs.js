@@ -4,6 +4,7 @@ const multer = require('multer');
 const XLSX = require('xlsx');
 const Papa = require('papaparse');
 const Job = require('../models/Job');
+const authMiddleware = require('../middleware/auth');
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
 
@@ -120,7 +121,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // ── POST /api/jobs — Thêm job mới ──────────────────────
-router.post('/', async (req, res) => {
+router.post('/', authMiddleware, async (req, res) => {
   try {
     const job = await Job.create(req.body);
     res.status(201).json({ success: true, data: job });
@@ -132,7 +133,7 @@ router.post('/', async (req, res) => {
 });
 
 // ── PUT /api/jobs/:id — Cập nhật toàn bộ job ──────────
-router.put('/:id', async (req, res) => {
+router.put('/:id', authMiddleware, async (req, res) => {
   try {
     const job = await Job.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     if (!job) return res.status(404).json({ success: false, message: 'Không tìm thấy job' });
@@ -143,7 +144,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // ── PATCH /api/jobs/:id/status — Cập nhật trạng thái ──
-router.patch('/:id/status', async (req, res) => {
+router.patch('/:id/status', authMiddleware, async (req, res) => {
   try {
     const { status } = req.body;
     const job = await Job.findByIdAndUpdate(req.params.id, { status }, { new: true, runValidators: true });
@@ -155,7 +156,7 @@ router.patch('/:id/status', async (req, res) => {
 });
 
 // ── PATCH /api/jobs/:id/notes — Cập nhật ghi chú SS ───
-router.patch('/:id/notes', async (req, res) => {
+router.patch('/:id/notes', authMiddleware, async (req, res) => {
   try {
     const { ssNotes } = req.body;
     const job = await Job.findByIdAndUpdate(req.params.id, { ssNotes }, { new: true });
@@ -167,7 +168,7 @@ router.patch('/:id/notes', async (req, res) => {
 });
 
 // ── DELETE /api/jobs/:id — Xóa job ────────────────────
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authMiddleware, async (req, res) => {
   try {
     const job = await Job.findByIdAndDelete(req.params.id);
     if (!job) return res.status(404).json({ success: false, message: 'Không tìm thấy job' });
@@ -178,7 +179,7 @@ router.delete('/:id', async (req, res) => {
 });
 
 // ── POST /api/jobs/import — Import Excel/CSV ───────────
-router.post('/import', upload.single('file'), async (req, res) => {
+router.post('/import', authMiddleware, upload.single('file'), async (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ success: false, message: 'Không có file được upload' });
 

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
+import { authService, AuthUser } from '../../services/authService';
 
 interface LoginScreenProps {
-  onLogin: (username: string) => void;
+  onLogin: (user: AuthUser) => void;
 }
 
 export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
@@ -10,19 +11,29 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!username.trim() || !password) return;
+
     setError('');
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      // Call real backend authentication API
+      const user = await authService.login(username.trim(), password);
+      onLogin(user);
+    } catch (err: any) {
+      // If backend is offline or returned error, check fallback credentials for offline dev
       if (username.trim().toLowerCase() === 'admin' && password === '123456') {
-        onLogin('admin');
+        const fallbackUser: AuthUser = { username: 'admin', name: 'SS Admin', role: 'admin' };
+        localStorage.setItem('mindx_auth_user', JSON.stringify(fallbackUser));
+        onLogin(fallbackUser);
       } else {
-        setError('Tài khoản hoặc mật khẩu không chính xác.');
-        setIsLoading(false);
+        setError(err.message || 'Tài khoản hoặc mật khẩu không chính xác.');
       }
-    }, 300);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -86,7 +97,7 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onLogin }) => {
             disabled={isLoading || !username.trim() || !password}
             className="w-full btn-primary justify-center py-2 text-xs font-semibold mt-2 disabled:opacity-50"
           >
-            {isLoading ? 'Đang xử lý...' : 'Đăng nhập'}
+            {isLoading ? 'Đang xác thực...' : 'Đăng nhập'}
           </button>
         </form>
       </div>

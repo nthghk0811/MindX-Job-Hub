@@ -36,9 +36,11 @@ const INITIAL_FILTER_STATE: FilterState = {
   selectedSkills: []
 };
 
+import { authService, AuthUser } from './services/authService';
+
 export default function App() {
-  const [currentUser, setCurrentUser] = useState<string | null>(() => {
-    return localStorage.getItem('mindx_auth_user');
+  const [currentUser, setCurrentUser] = useState<AuthUser | null>(() => {
+    return authService.getUser();
   });
 
   const [filters, setFilters] = useState<FilterState>(INITIAL_FILTER_STATE);
@@ -192,14 +194,13 @@ export default function App() {
     filters.fitScores, filters.selectedSkills
   ].reduce((acc, arr) => acc + arr.length, 0) + (filters.searchKeyword ? 1 : 0);
 
-  const handleLogin = (username: string) => {
-    localStorage.setItem('mindx_auth_user', username);
-    setCurrentUser(username);
-    showToast(`Chào mừng ${username} đến với MindX Job Hub!`);
+  const handleLogin = (user: AuthUser) => {
+    setCurrentUser(user);
+    showToast(`Chào mừng ${user.name || user.username} đến với MindX Job Hub!`);
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('mindx_auth_user');
+    authService.logout();
     setCurrentUser(null);
     showToast('Đã đăng xuất thành công.');
   };
@@ -235,7 +236,7 @@ export default function App() {
         onOpenAddJobModal={() => setIsAddJobModalOpen(true)}
         onOpenAddStudentModal={() => setIsAddStudentModalOpen(true)}
         totalJobsCount={usingMock ? jobs.length : total}
-        currentUser={currentUser}
+        currentUser={currentUser.name || currentUser.username}
         onLogout={handleLogout}
       />
 

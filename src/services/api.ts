@@ -12,18 +12,26 @@ const api = axios.create({
   },
 });
 
-// Request interceptor — log in dev
+// Request interceptor — attach JWT token and log in dev
 api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('mindx_auth_token');
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   if (import.meta.env.DEV) {
     console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
   }
   return config;
 });
 
-// Response interceptor — unwrap data
+// Response interceptor — unwrap data and handle 401
 api.interceptors.response.use(
   (res) => res,
   (err) => {
+    if (err.response?.status === 401) {
+      localStorage.removeItem('mindx_auth_token');
+      localStorage.removeItem('mindx_auth_user');
+    }
     const message = err.response?.data?.message || err.message || 'Lỗi kết nối server';
     console.error('[API Error]', message);
     return Promise.reject(new Error(message));
