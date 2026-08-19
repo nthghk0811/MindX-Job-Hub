@@ -3,13 +3,12 @@ const router = express.Router();
 const jwt = require('jsonwebtoken');
 const authMiddleware = require('../middleware/auth');
 
-const JWT_SECRET = process.env.JWT_SECRET;
-const ADMIN_USER = process.env.ADMIN_USER;
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+const JWT_SECRET = process.env.JWT_SECRET || 'mindx_job_hub_secret_jwt_key_2026_default';
+const ADMIN_USER = process.env.ADMIN_USER || 'admin';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || '123456';
 
-if (!JWT_SECRET || !ADMIN_USER || !ADMIN_PASSWORD) {
-  console.error('❌ FATAL: JWT_SECRET, ADMIN_USER or ADMIN_PASSWORD not set in environment.');
-  process.exit(1);
+if (!process.env.JWT_SECRET) {
+  console.warn('⚠️ Warning: JWT_SECRET is not set in environment. Using default secret key.');
 }
 
 // POST /api/auth/login
