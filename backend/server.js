@@ -7,25 +7,11 @@ require('dotenv').config();
 
 const app = express();
 
-// ── CORS — allow known origins & Vercel deployments ──
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || 'http://localhost:5173,http://localhost:5174,http://localhost:4173')
-  .split(',').map(o => o.trim());
-
+// ── CORS — allow all origins & headers (Vercel, localhost, etc.) ──
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (
-      ALLOWED_ORIGINS.includes('*') ||
-      ALLOWED_ORIGINS.includes(origin) ||
-      origin.endsWith('.vercel.app') ||
-      origin.startsWith('http://localhost:')
-    ) {
-      return callback(null, true);
-    }
-    callback(new Error(`CORS: Origin '${origin}' not allowed`));
-  },
+  origin: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Cache-Control', 'Pragma', 'X-Requested-With', 'Accept', 'Origin'],
   credentials: true,
 }));
 
