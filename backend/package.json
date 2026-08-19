@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "dev": "nodemon server.js",
+    "build": "echo 'No build step required'",
     "start": "node server.js",
     "seed": "node scripts/seedJobs.js",
     "import-csv": "node scripts/importCsv.js",
