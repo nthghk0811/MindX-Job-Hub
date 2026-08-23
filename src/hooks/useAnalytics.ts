@@ -11,6 +11,7 @@ export interface AnalyticsSummary {
   byStatus:   { _id: string; count: number }[];
   byFit:      { _id: string; count: number }[];
   topSkills:  { _id: string; count: number }[];
+  byWeek:     { week: string; count: number }[];
 }
 
 interface UseAnalyticsReturn {

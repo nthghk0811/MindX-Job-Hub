@@ -5,10 +5,10 @@ import { JobItem, JobStatusType } from '../../types/job';
 interface JobDetailModalProps {
   job: JobItem | null;
   onClose: () => void;
-  onUpdateSsNotes: (jobId: string, notes: string) => void;
-  onUpdateStatus: (jobId: string, status: JobStatusType) => void;
-  onMatchStudent: (job: JobItem) => void;
-  onDeleteJob: (jobId: string) => void;
+  onUpdateSsNotes?: (jobId: string, notes: string) => void;
+  onUpdateStatus?: (jobId: string, status: JobStatusType) => void;
+  onMatchStudent?: (job: JobItem) => void;
+  onDeleteJob?: (jobId: string) => void;
 }
 
 const FIELD_LABEL = 'block text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5';
@@ -39,7 +39,7 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({
   }, [job]);
 
   const handleSave = () => {
-    onUpdateSsNotes(job.id, notes);
+    onUpdateSsNotes?.(job.id, notes);
     setSaved(true);
     setTimeout(() => setSaved(false), 2000);
   };
@@ -107,16 +107,20 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({
             </div>
             <div>
               <p className={FIELD_LABEL}>Trạng thái</p>
-              <select
-                value={job.status}
-                onChange={e => onUpdateStatus(job.id, e.target.value as JobStatusType)}
-                className="input text-xs py-1"
-              >
-                <option value="Còn tuyển">Còn tuyển</option>
-                <option value="Hết hạn">Hết hạn</option>
-                <option value="Chưa xác minh">Chưa xác minh</option>
-                <option value="Đã gửi học viên">Đã gửi học viên</option>
-              </select>
+              {onUpdateStatus ? (
+                <select
+                  value={job.status}
+                  onChange={e => onUpdateStatus(job.id, e.target.value as JobStatusType)}
+                  className="input text-xs py-1"
+                >
+                  <option value="Còn tuyển">Còn tuyển</option>
+                  <option value="Hết hạn">Hết hạn</option>
+                  <option value="Chưa xác minh">Chưa xác minh</option>
+                  <option value="Đã gửi học viên">Đã gửi học viên</option>
+                </select>
+              ) : (
+                <p className="font-semibold text-slate-800 text-sm">{job.status}</p>
+              )}
             </div>
             <div>
               <p className={FIELD_LABEL}>Link gốc</p>
@@ -153,52 +157,66 @@ export const JobDetailModal: React.FC<JobDetailModalProps> = ({
             <p className="text-sm text-slate-700 mt-1">{job.benefits}</p>
           </div>
 
-          {/* SS Notes */}
-          <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100 space-y-3">
-            <div className="flex items-center justify-between">
-              <p className={FIELD_LABEL + ' text-indigo-700'}>Ghi chú nội bộ Team SS</p>
-              {saved && (
-                <span className="flex items-center gap-1 text-xs text-emerald-700 font-semibold">
-                  <CheckCircle className="w-3.5 h-3.5" />
-                  Đã lưu
-                </span>
-              )}
+          {/* SS Notes — admin only */}
+          {onUpdateSsNotes && (
+            <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100 space-y-3">
+              <div className="flex items-center justify-between">
+                <p className={FIELD_LABEL + ' text-indigo-700'}>Ghi chú nội bộ Team SS</p>
+                {saved && (
+                  <span className="flex items-center gap-1 text-xs text-emerald-700 font-semibold">
+                    <CheckCircle className="w-3.5 h-3.5" />
+                    Đã lưu
+                  </span>
+                )}
+              </div>
+              <textarea
+                rows={3}
+                value={notes}
+                onChange={e => setNotes(e.target.value)}
+                placeholder="Ghi chú về HR, học viên đã apply, kết quả phỏng vấn..."
+                className="input text-sm resize-none bg-white"
+              />
+              <div className="flex justify-end">
+                <button type="button" onClick={handleSave} className="btn-primary text-xs">
+                  <Save className="w-3.5 h-3.5" />
+                  Lưu ghi chú
+                </button>
+              </div>
             </div>
-            <textarea
-              rows={3}
-              value={notes}
-              onChange={e => setNotes(e.target.value)}
-              placeholder="Ghi chú về HR, học viên đã apply, kết quả phỏng vấn..."
-              className="input text-sm resize-none bg-white"
-            />
-            <div className="flex justify-end">
-              <button type="button" onClick={handleSave} className="btn-primary text-xs">
-                <Save className="w-3.5 h-3.5" />
-                Lưu ghi chú
-              </button>
+          )}
+
+          {/* SS Notes read-only — student view */}
+          {!onUpdateSsNotes && job.ssNotes && (
+            <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
+              <p className={FIELD_LABEL + ' text-indigo-700'}>Ghi chú từ Team SS</p>
+              <p className="text-sm text-slate-700 mt-1 whitespace-pre-line">{job.ssNotes}</p>
             </div>
-          </div>
+          )}
 
           {/* Actions row */}
           <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100">
-            <button
-              type="button"
-              onClick={() => { onDeleteJob(job.id); onClose(); }}
-              className="btn-ghost text-rose-600 hover:bg-rose-50 text-sm"
-            >
-              <Trash2 className="w-4 h-4" />
-              Xóa job này
-            </button>
-
-            <div className="flex items-center gap-2">
+            {onDeleteJob && (
               <button
                 type="button"
-                onClick={() => { onClose(); onMatchStudent(job); }}
-                className="btn-secondary"
+                onClick={() => { onDeleteJob(job.id); onClose(); }}
+                className="btn-ghost text-rose-600 hover:bg-rose-50 text-sm"
               >
-                <UserCheck className="w-4 h-4" />
-                Gợi ý học viên phù hợp
+                <Trash2 className="w-4 h-4" />
+                Xóa job này
               </button>
+            )}
+
+            <div className="flex items-center gap-2 ml-auto">
+              {onMatchStudent && (
+                <button
+                  type="button"
+                  onClick={() => { onClose(); onMatchStudent(job); }}
+                  className="btn-secondary"
+                >
+                  <UserCheck className="w-4 h-4" />
+                  Gợi ý học viên phù hợp
+                </button>
+              )}
               <a
                 href={safeUrl(job.originalUrl)}
                 target="_blank"

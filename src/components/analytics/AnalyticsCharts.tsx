@@ -2,6 +2,7 @@ import React from 'react';
 import {
   PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend,
   BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  LineChart, Line,
 } from 'recharts';
 import { useAnalytics, getCount } from '../../hooks/useAnalytics';
 
@@ -202,6 +203,35 @@ export const AnalyticsCharts: React.FC = () => {
         </div>
       </ChartCard>
 
+      {/* Row 4: Weekly trend */}
+      <ChartCard title="Xu hướng thu thập theo Tuần (8 tuần gần nhất)" loading={loading}>
+        {!data?.byWeek || data.byWeek.length === 0 ? (
+          <div className="h-52 flex items-center justify-center text-xs text-slate-400">
+            Chưa có đủ dữ liệu theo tuần
+          </div>
+        ) : (
+          <div className="h-52">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={data.byWeek} margin={{ top: 4, right: 12, left: -28, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="week" tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                <YAxis tick={{ fill: '#94a3b8', fontSize: 10 }} />
+                <Tooltip contentStyle={TOOLTIP_STYLE} formatter={(v: any) => [`${v} jobs`, 'Số job thu thập']} />
+                <Line
+                  type="monotone"
+                  dataKey="count"
+                  stroke="#6366f1"
+                  strokeWidth={2.5}
+                  dot={{ fill: '#6366f1', r: 4 }}
+                  activeDot={{ r: 6, fill: '#4f46e5' }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </ChartCard>
+
     </div>
   );
 };
+

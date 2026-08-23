@@ -5,8 +5,9 @@ import { JobItem } from '../../types/job';
 interface JobTableViewProps {
   jobs: JobItem[];
   onSelectJob: (job: JobItem) => void;
-  onMatchStudent: (job: JobItem) => void;
-  onDeleteJob: (id: string) => void;
+  onMatchStudent?: (job: JobItem) => void;
+  onDeleteJob?: (id: string) => void;
+  isAdmin?: boolean;
 }
 
 const FIT_CLASS: Record<string, string> = {
@@ -78,15 +79,19 @@ export const JobTableView: React.FC<JobTableViewProps> = ({
               </td>
               <td className="px-4 py-3">
                 <div className="flex items-center gap-1">
-                  <button type="button" onClick={() => onMatchStudent(job)} title="Gợi ý học viên" className="btn-ghost p-1 text-slate-400 hover:text-indigo-600">
-                    <UserCheck className="w-4 h-4" />
-                  </button>
+                  {onMatchStudent && (
+                    <button type="button" onClick={() => onMatchStudent(job)} title="Gợi ý học viên" className="btn-ghost p-1 text-slate-400 hover:text-indigo-600">
+                      <UserCheck className="w-4 h-4" />
+                    </button>
+                  )}
                   <button type="button" onClick={() => onSelectJob(job)} title="Xem chi tiết" className="btn-ghost p-1 text-slate-400 hover:text-slate-800">
                     <Eye className="w-4 h-4" />
                   </button>
-                  <button type="button" onClick={() => onDeleteJob(job.id)} title="Xóa" className="btn-ghost p-1 text-slate-400 hover:text-rose-600">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {onDeleteJob && (
+                    <button type="button" onClick={() => onDeleteJob(job.id)} title="Xóa" className="btn-ghost p-1 text-slate-400 hover:text-rose-600">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
               </td>
             </tr>

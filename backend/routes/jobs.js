@@ -60,17 +60,46 @@ router.get('/', async (req, res) => {
   }
 });
 
+// ── GET /api/jobs/expired — Preview job hết hạn ───────
+router.get('/expired', async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const jobs = await Job.find({
+      deadline: { $lt: today },
+      status: { $ne: 'Đã gửi học viên' }, // giữ lại lịch sử gửi HV
+    }).select('_id title companyName deadline status').lean();
+    res.json({ success: true, data: jobs, total: jobs.length });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ── DELETE /api/jobs/expired — Xóa job hết hạn ────────
+router.delete('/expired', authMiddleware, async (req, res) => {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const result = await Job.deleteMany({
+      deadline: { $lt: today },
+      status: { $ne: 'Đã gửi học viên' },
+    });
+    res.json({ success: true, deleted: result.deletedCount, message: `Đã xóa ${result.deletedCount} job hết hạn.` });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ── GET /api/jobs/duplicates — Phát hiện trùng lặp ────
 router.get('/duplicates', async (req, res) => {
   try {
-    const jobs = await Job.find({}).lean();
+    const jobs = await Job.find({}).select('_id companyName title originalUrl source salary scrapedAt location').lean();
     const pairs = [];
     const seen = new Set();
+    const MAX_PAIRS = 300; // Cap to avoid performance issues
 
-    for (let i = 0; i < jobs.length; i++) {
-      for (let j = i + 1; j < jobs.length; j++) {
+    for (let i = 0; i < jobs.length && pairs.length < MAX_PAIRS; i++) {
+      for (let j = i + 1; j < jobs.length && pairs.length < MAX_PAIRS; j++) {
         const a = jobs[i], b = jobs[j];
-        const key = [a._id, b._id].sort().join('|');
+        const key = [String(a._id), String(b._id)].sort().join('|');
         if (seen.has(key)) continue;
 
         // Trùng URL
@@ -108,6 +137,51 @@ router.get('/duplicates', async (req, res) => {
     res.status(500).json({ success: false, message: err.message });
   }
 });
+
+// ── DELETE /api/jobs/duplicates/purge — Tự động xóa toàn bộ bản trùng ─
+router.delete('/duplicates/purge', authMiddleware, async (req, res) => {
+  try {
+    // Strategy: Keep oldest record per (companyName+title) group, delete the rest.
+    // Also deduplicate by originalUrl.
+    const jobs = await Job.find({}).select('_id companyName title originalUrl createdAt').lean();
+
+    const toDelete = new Set();
+
+    // Group by exact companyName+title key, keep first (oldest)
+    const titleMap = new Map();
+    for (const job of jobs) {
+      const key = `${job.companyName.toLowerCase()}|${job.title.toLowerCase()}`;
+      if (titleMap.has(key)) {
+        toDelete.add(String(job._id)); // delete the later one
+      } else {
+        titleMap.set(key, job._id);
+      }
+    }
+
+    // Group by originalUrl, keep first
+    const urlMap = new Map();
+    for (const job of jobs) {
+      if (!job.originalUrl || toDelete.has(String(job._id))) continue;
+      const url = job.originalUrl.trim().toLowerCase();
+      if (urlMap.has(url)) {
+        toDelete.add(String(job._id));
+      } else {
+        urlMap.set(url, job._id);
+      }
+    }
+
+    if (toDelete.size === 0) {
+      return res.json({ success: true, deleted: 0, message: 'Database đã sạch, không tìm thấy bản trùng.' });
+    }
+
+    const result = await Job.deleteMany({ _id: { $in: [...toDelete] } });
+    res.json({ success: true, deleted: result.deletedCount, message: `Đã xóa ${result.deletedCount} bản ghi trùng lặp.` });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+
 
 // ── GET /api/jobs/:id — Chi tiết 1 job ─────────────────
 router.get('/:id', async (req, res) => {

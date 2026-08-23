@@ -5,7 +5,8 @@ import { JobItem } from '../../types/job';
 interface JobCardProps {
   job: JobItem;
   onSelectJob: (job: JobItem) => void;
-  onMatchStudent: (job: JobItem) => void;
+  onMatchStudent?: (job: JobItem) => void;
+  isAdmin?: boolean;
 }
 
 const INDUSTRY_STYLE: Record<string, string> = {
@@ -116,14 +117,16 @@ export const JobCard: React.FC<JobCardProps> = ({ job, onSelectJob, onMatchStude
             Xem chi tiết
           </button>
           <span className="text-slate-200">·</span>
-          <button
-            type="button"
-            onClick={() => onMatchStudent(job)}
-            className="flex items-center gap-0.5 text-[11px] font-medium text-slate-400 hover:text-indigo-600 transition-colors"
-          >
-            <Users className="w-3 h-3" />
-            Match HV
-          </button>
+          {onMatchStudent && (
+            <button
+              type="button"
+              onClick={() => onMatchStudent(job)}
+              className="flex items-center gap-0.5 text-[11px] font-medium text-slate-400 hover:text-indigo-600 transition-colors"
+            >
+              <Users className="w-3 h-3" />
+              Match HV
+            </button>
+          )}
         </div>
 
         <div className="flex items-center gap-1.5">

@@ -1,16 +1,31 @@
 import api from './api';
 
 export interface AuthUser {
+  id?: string;
   username: string;
   name: string;
-  role: string;
+  role: 'admin' | 'student';
+}
+
+export interface RegisterPayload {
+  fullName: string;
+  username: string;
+  email: string;
+  password: string;
+  course?: string;
 }
 
 interface LoginResponse {
   success: boolean;
   message: string;
-  token: string;
-  user: AuthUser;
+  token?: string;
+  user?: AuthUser;
+  code?: string;
+}
+
+interface RegisterResponse {
+  success: boolean;
+  message: string;
 }
 
 const TOKEN_KEY = 'mindx_auth_token';
@@ -19,12 +34,18 @@ const USER_KEY = 'mindx_auth_user';
 export const authService = {
   async login(username: string, password: string): Promise<AuthUser> {
     const res = await api.post<LoginResponse>('/auth/login', { username, password });
-    if (res.data.success && res.data.token) {
+    if (res.data.success && res.data.token && res.data.user) {
       localStorage.setItem(TOKEN_KEY, res.data.token);
       localStorage.setItem(USER_KEY, JSON.stringify(res.data.user));
       return res.data.user;
     }
     throw new Error(res.data.message || 'Đăng nhập không thành công');
+  },
+
+  async register(payload: RegisterPayload): Promise<{ message: string }> {
+    const res = await api.post<RegisterResponse>('/auth/register', payload);
+    if (res.data.success) return { message: res.data.message };
+    throw new Error(res.data.message || 'Đăng ký không thành công');
   },
 
   logout(): void {
@@ -41,17 +62,19 @@ export const authService = {
     if (!raw) return null;
     try {
       const parsed = JSON.parse(raw);
-      // Validate the parsed object has expected shape
       if (!parsed.username || !parsed.role) {
         this.logout();
         return null;
       }
       return parsed as AuthUser;
     } catch {
-      // Corrupt data — clear and force re-login
       this.logout();
       return null;
     }
+  },
+
+  isAdmin(): boolean {
+    return this.getUser()?.role === 'admin';
   },
 
   async verifySession(): Promise<boolean> {

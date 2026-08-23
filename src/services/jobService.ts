@@ -93,6 +93,12 @@ export async function getDuplicates() {
   return res.data.data;
 }
 
+// ── DELETE /duplicates/purge — Xóa toàn bộ bản trùng ─
+export async function purgeAllDuplicates(): Promise<{ deleted: number; message: string }> {
+  const res = await api.delete('/jobs/duplicates/purge');
+  return res.data;
+}
+
 // ── POST import file ─────────────────────────────────
 export async function importJobsFile(file: File) {
   const formData = new FormData();
@@ -107,4 +113,16 @@ export async function importJobsFile(file: File) {
 export async function getAnalyticsSummary() {
   const res = await api.get('/analytics/summary');
   return res.data.data;
+}
+
+// ── GET expired jobs preview ─────────────────────────
+export async function getExpiredJobs(): Promise<{ _id: string; title: string; companyName: string; deadline: string; status: string }[]> {
+  const res = await api.get('/jobs/expired');
+  return res.data.data;
+}
+
+// ── DELETE expired jobs ──────────────────────────────
+export async function purgeExpiredJobs(): Promise<{ deleted: number; message: string }> {
+  const res = await api.delete('/jobs/expired');
+  return res.data;
 }

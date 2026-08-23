@@ -15,6 +15,7 @@
   "author": "MindX SS Team",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "csv-parser": "^3.2.1",
     "dotenv": "^17.4.2",
