@@ -106,13 +106,13 @@ const jobSchema = new mongoose.Schema(
     // ── 8. Mô tả công việc ──────────────────────────────
     description: {
       type: String,
-      required: [true, 'Mô tả công việc là bắt buộc'],
+      default: '',
     },
 
     // ── 9. Yêu cầu ứng viên ─────────────────────────────
     requirements: {
       type: String,
-      required: [true, 'Yêu cầu ứng viên là bắt buộc'],
+      default: '',
     },
 
     // ── 10. Kỹ năng/công nghệ yêu cầu ──────────────────

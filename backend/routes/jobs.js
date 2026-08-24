@@ -277,30 +277,41 @@ router.post('/import', authMiddleware, upload.single('file'), async (req, res) =
     const VALID_LEVELS     = ['Intern', 'Fresher', 'Junior'];
     const VALID_LOCATIONS  = ['Hà Nội', 'TP.HCM', 'Remote', 'Hybrid'];
     const VALID_EMP_TYPES  = ['Fulltime', 'Parttime', 'Internship', 'Trainee'];
-    const VALID_SOURCES    = ['TopCV', 'ITviec', 'LinkedIn', 'VietnamWorks', 'Ybox', 'Facebook Group', 'Manual'];
+    const VALID_SOURCES    = ['TopCV', 'ITviec', 'LinkedIn', 'VietnamWorks', 'Ybox', 'Facebook Group', 'JobsGo', 'NEU', 'Manual'];
+    const VALID_STATUSES   = ['Còn tuyển', 'Hết hạn', 'Chưa xác minh', 'Đã gửi học viên'];
+    const VALID_FIT        = ['High', 'Medium', 'Low'];
+
+    const batchId = `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 
     const jobs = rows.map((row, i) => {
       const skills = String(row['skills'] || row['Kỹ năng'] || '').split(',').map(s => s.trim()).filter(Boolean);
+      const rawSrc = row['source'] || row['Nguồn'] || '';
+      const rawLoc = row['location'] || row['Địa điểm'] || '';
+      const rawLvl = row['level'] || row['Level'] || '';
+      const rawInd = row['industry'] || row['Ngành'] || '';
+      const rawEmp = row['employmentType'] || row['Hình thức'] || '';
+      const rawStt = row['status'] || row['Trạng thái'] || '';
+      const rawFit = row['mindxFitScore'] || row['Fit Score'] || '';
       return {
-        companyName:    row['companyName']    || row['Tên công ty']    || `Công ty ${i + 1}`,
-        website:        row['website']        || row['Website']        || 'https://company.com',
-        title:          row['title']          || row['Vị trí']         || 'Chưa có tiêu đề',
-        industry:       VALID_INDUSTRIES.includes(row['industry'] || row['Ngành']) ? (row['industry'] || row['Ngành']) : 'Code',
-        level:          VALID_LEVELS.includes(row['level'] || row['Level']) ? (row['level'] || row['Level']) : 'Intern',
-        location:       VALID_LOCATIONS.includes(row['location'] || row['Địa điểm']) ? (row['location'] || row['Địa điểm']) : 'Hà Nội',
-        employmentType: VALID_EMP_TYPES.includes(row['employmentType'] || row['Hình thức']) ? (row['employmentType'] || row['Hình thức']) : 'Internship',
-        description:    row['description']   || row['Mô tả']          || '',
-        requirements:   row['requirements']  || row['Yêu cầu']        || '',
+        companyName:    row['companyName']  || row['Tên công ty']  || `Công ty ${i + 1}`,
+        website:        row['website']      || row['Website']      || 'https://company.com',
+        title:          row['title']        || row['Vị trí']       || 'Chưa có tiêu đề',
+        industry:       VALID_INDUSTRIES.includes(rawInd) ? rawInd : 'Code',
+        level:          VALID_LEVELS.includes(rawLvl) ? rawLvl : 'Intern',
+        location:       VALID_LOCATIONS.includes(rawLoc) ? rawLoc : 'Hà Nội',
+        employmentType: VALID_EMP_TYPES.includes(rawEmp) ? rawEmp : 'Internship',
+        description:    row['description']  || row['Mô tả']        || '',
+        requirements:   row['requirements'] || row['Yêu cầu']      || '',
         skills,
-        salary:         row['salary']        || row['Mức lương']      || 'Thỏa thuận',
-        benefits:       row['benefits']      || row['Quyền lợi']      || '',
-        deadline:       row['deadline']      || row['Deadline']       || '2026-12-31',
-        originalUrl:    row['originalUrl']   || row['Link JD']        || `https://manual-import-${Date.now()}-${i}`,
-        source:         VALID_SOURCES.includes(row['source'] || row['Nguồn']) ? (row['source'] || row['Nguồn']) : 'Manual',
+        salary:         row['salary']       || row['Mức lương']    || 'Thỏa thuận',
+        benefits:       row['benefits']     || row['Quyền lợi']    || '',
+        deadline:       row['deadline']     || row['Deadline']     || '2026-12-31',
+        originalUrl:    row['originalUrl']  || row['Link JD']      || `https://import-${batchId}-${i}`,
+        source:         VALID_SOURCES.includes(rawSrc) ? rawSrc : 'Manual',
         scrapedAt:      new Date().toISOString().split('T')[0],
-        status:         row['status']        || row['Trạng thái']     || 'Chưa xác minh',
-        mindxFitScore:  row['mindxFitScore'] || row['Fit Score']      || 'Medium',
-        ssNotes:        row['ssNotes']       || row['Ghi chú SS']     || '',
+        status:         VALID_STATUSES.includes(rawStt) ? rawStt : 'Chưa xác minh',
+        mindxFitScore:  VALID_FIT.includes(rawFit) ? rawFit : 'Medium',
+        ssNotes:        row['ssNotes']      || row['Ghi chú SS']   || '',
       };
     });
 
@@ -312,8 +323,11 @@ router.post('/import', authMiddleware, upload.single('file'), async (req, res) =
         await Job.create(jobData);
         inserted++;
       } catch (e) {
-        if (e.code === 11000) skipped++;
-        else errors.push({ job: jobData.title, error: e.message });
+        if (e.code === 11000) {
+          skipped++;
+        } else {
+          errors.push({ job: jobData.title, error: e.message });
+        }
       }
     }
 

@@ -16,13 +16,14 @@ interface ImportState {
   parseErrors: { row: number; reason: string }[];
   imported: number;
   skipped:  number;
+  serverErrors: { job: string; error: string }[];
   errorMsg: string;
   fileName: string;
 }
 
 const INIT: ImportState = {
   status: 'idle', parsed: [], parseErrors: [],
-  imported: 0, skipped: 0, errorMsg: '', fileName: '',
+  imported: 0, skipped: 0, serverErrors: [], errorMsg: '', fileName: '',
 };
 
 export const ImportExport: React.FC<ImportExportProps> = ({ jobs, onImportJobs }) => {
@@ -62,12 +63,11 @@ export const ImportExport: React.FC<ImportExportProps> = ({ jobs, onImportJobs }
     setState(s => ({ ...s, status: 'importing' }));
     try {
       const result = await importJobsFile(fileRef.current);
-      // importJobsFile sends the raw file to POST /api/jobs/import (server-side parse + bulk insert)
       const inserted: number = result.inserted ?? 0;
       const skipped: number  = result.skipped  ?? 0;
-      // Trigger parent refresh — pass empty array since server handled insert
+      const serverErrors: { job: string; error: string }[] = result.errors ?? [];
       onImportJobs([]);
-      setState(s => ({ ...s, status: 'done', imported: inserted, skipped }));
+      setState(s => ({ ...s, status: 'done', imported: inserted, skipped, serverErrors }));
     } catch (e: any) {
       setState(s => ({ ...s, status: 'error', errorMsg: e.message || 'Lỗi import lên server' }));
     }
@@ -168,7 +168,21 @@ export const ImportExport: React.FC<ImportExportProps> = ({ jobs, onImportJobs }
                 <p className="text-xs text-slate-500">
                   <span className="text-emerald-700 font-bold">{state.imported}</span> job mới ·{' '}
                   <span className="text-slate-500">{state.skipped}</span> bỏ qua (trùng)
+                  {state.serverErrors.length > 0 && (
+                    <span className="text-rose-600 font-semibold"> · {state.serverErrors.length} lỗi</span>
+                  )}
                 </p>
+                {state.serverErrors.length > 0 && (
+                  <div className="w-full mt-2 p-3 bg-rose-50 border border-rose-100 rounded-xl text-left max-h-32 overflow-y-auto">
+                    <p className="text-xs font-bold text-rose-700 mb-1">Chi tiết lỗi ({state.serverErrors.length} dòng):</p>
+                    {state.serverErrors.slice(0, 5).map((e, i) => (
+                      <p key={i} className="text-[10px] text-rose-600">• {e.job}: {e.error}</p>
+                    ))}
+                    {state.serverErrors.length > 5 && (
+                      <p className="text-[10px] text-rose-400">...và {state.serverErrors.length - 5} lỗi khác</p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
